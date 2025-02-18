@@ -38,6 +38,7 @@ func RequestParserAndValidate(c *fiber.Ctx, requestBody any) error {
 		})
 	}
 	validate := validator.New()
+	// userDto.RegisterCustomValidations(validate)
 
 	if err := validate.Struct(requestBody); err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(JsonResponse{

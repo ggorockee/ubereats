@@ -4,6 +4,7 @@ import (
 	"ubereats/app"
 	"ubereats/app/core/helper"
 	"ubereats/app/domain/restaurant"
+	"ubereats/app/domain/user"
 	"ubereats/config"
 
 	"github.com/gofiber/fiber/v2"
@@ -16,6 +17,7 @@ func main() {
 		helper.Module,
 
 		restaurant.ControllerMoudle,
+		user.ControllerMoudle,
 
 		fx.Provide(
 			app.NewFiber,
