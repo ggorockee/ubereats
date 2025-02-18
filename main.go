@@ -2,6 +2,8 @@ package main
 
 import (
 	"ubereats/app"
+	"ubereats/app/core/helper"
+	"ubereats/app/domain/restaurant"
 	"ubereats/config"
 
 	"github.com/gofiber/fiber/v2"
@@ -11,6 +13,9 @@ import (
 func main() {
 	fx.New(
 		config.Module,
+		helper.Module,
+
+		restaurant.ControllerMoudle,
 
 		fx.Provide(
 			app.NewFiber,
