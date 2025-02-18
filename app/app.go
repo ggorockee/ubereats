@@ -9,7 +9,6 @@ import (
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/cors"
-	"github.com/gofiber/fiber/v2/middleware/recover"
 	"github.com/gofiber/swagger"
 	"go.uber.org/fx"
 	"go.uber.org/zap"
@@ -59,6 +58,6 @@ func initializeFiber() *fiber.App {
 
 func setMiddleware(app *fiber.App) *fiber.App {
 	app.Use(cors.New())
-	app.Use(recover.New())
+	// app.Use(recover.New())
 	return app
 }

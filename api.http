@@ -1,0 +1,27 @@
+###
+GET http://localhost:2500/api/v1/restaurant HTTP/1.1
+content-type: application/json
+
+###
+###
+POST http://localhost:2500/api/v1/restaurant HTTP/1.1
+content-type: application/json
+
+{
+    "name": "name" ,
+    "is_vegan": "true" ,
+    "address": "addr" ,
+    "owners_name": "woohyeon" 
+}
+
+###
+PUT http://localhost:2500/api/v1/restaurant/15 HTTP/1.1
+content-type: application/json
+
+{
+    "name": "without is vegan"
+}
+
+###
+GET http://localhost:2500/api/v1/restaurant/11 HTTP/1.1
+content-type: application/json

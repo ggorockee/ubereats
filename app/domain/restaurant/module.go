@@ -1,6 +1,7 @@
 package restaurant
 
 import (
+	"ubereats/app"
 	restaurantCtrl "ubereats/app/domain/restaurant/controller"
 	restaurantRepo "ubereats/app/domain/restaurant/repository"
 	restaurantSvc "ubereats/app/domain/restaurant/service"
@@ -13,6 +14,6 @@ var ControllerMoudle = fx.Module(
 	fx.Provide(
 		restaurantRepo.NewRestaurantRepository,
 		restaurantSvc.NewRestaurantService,
-		restaurantCtrl.NewRestaurantController,
+		app.AsRoute(restaurantCtrl.NewRestaurantController),
 	),
 )

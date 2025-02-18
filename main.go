@@ -19,9 +19,14 @@ func main() {
 
 		fx.Provide(
 			app.NewFiber,
+			fx.Annotate(
+				app.NewRouter,
+				fx.ParamTags(``, `group:"routes"`),
+			),
 		),
 
 		fx.Invoke(
+			func(fiber.Router) {},
 			func(*fiber.App) {},
 		),
 	).Run()
