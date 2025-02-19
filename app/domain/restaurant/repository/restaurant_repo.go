@@ -2,6 +2,8 @@ package repository
 
 import (
 	"errors"
+	"fmt"
+	"log"
 	"ubereats/app/core/entity"
 	"ubereats/app/core/helper/common"
 
@@ -25,7 +27,7 @@ type restaurantRepository struct {
 // GetFindById implements RestaurantRepository.
 func (r *restaurantRepository) GetFindById(id int, context ...*fiber.Ctx) (*entity.Restaurant, error) {
 	var restaurant entity.Restaurant
-	if err := r.db.Where("id = ?", id).First(&restaurant).Error; err != nil {
+	if err := r.db.Preload("Owner").Preload("Category").Where("id = ?", id).First(&restaurant).Error; err != nil {
 		return nil, err
 	}
 
@@ -39,13 +41,34 @@ func (r *restaurantRepository) UpdateRestaurant(input *restaurantDto.UpdateResta
 		return nil, err
 	}
 
+	log.Println("categoryID >>>", input.CategoryID)
 	if err := common.DecodeStructure(input, restaurant); err != nil {
 		return nil, err
 	}
 
-	if err := r.db.Save(restaurant).Error; err != nil {
+	log.Println("categoryID >>>", restaurant.CategoryID)
+
+	if err := restaurant.Validate(); err != nil {
 		return nil, err
 	}
+
+	log.Println("categor~~~yID >>>", restaurant.CategoryID)
+
+	// if err := r.db.Model(restaurant).Updates(restaurant).Error; err != nil {
+	// 	return nil, err
+	// }
+	if err := r.db.Model(restaurant).Select("name", "cover_img", "address", "category_id", "owner_id").Updates(restaurant).Error; err != nil {
+		return nil, fmt.Errorf("failed to update restaurant: %w", err)
+	}
+
+	log.Println("categoryID @@@", restaurant.CategoryID)
+
+	if err := r.db.Preload("Owner").Preload("Category").Where("id = ?", id).First(&restaurant).Error; err != nil {
+		return nil, err
+	}
+
+	log.Println("categoryID", restaurant.CategoryID)
+
 	return restaurant, nil
 }
 

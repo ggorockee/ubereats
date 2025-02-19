@@ -121,11 +121,16 @@ func (ctrl *restaurantController) Table() []app.Mapping {
 				}),
 			},
 		},
-
 		{
 			Method:  fiber.MethodPut,
 			Path:    v1 + "/:id",
 			Handler: ctrl.UpdateRestaurant,
+			Middlewares: []fiber.Handler{
+				middleware.AuthMiddleware(ctrl.cfg),
+				middleware.Role(middleware.AllowedRoles{
+					entity.RoleOwner,
+				}),
+			},
 		},
 	}
 }

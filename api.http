@@ -110,3 +110,15 @@ Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoxMH0.O
     "address": "address1",
     "category_id": 4
 }
+
+###
+PUT http://localhost:2500/api/v1/restaurant/10 HTTP/1.1
+content-type: application/json
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoxMH0.OcDFmIaHOjiuwBbgrenT6u3iARzXi0MSHMnJiQdutEI
+
+{
+    "name": "update3",
+    "cover_img": "abc44",
+    "address": "address1",
+    "category_id": 4
+}
