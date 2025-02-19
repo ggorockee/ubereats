@@ -8,6 +8,11 @@ type UserResponse struct {
 	Role  entity.UserRole `json:"role"`
 }
 
+type OwnerResponse struct {
+	ID    int    `json:"id"`
+	Email string `json:"email"`
+}
+
 func GenUserRes(m *entity.User) UserResponse {
 	return UserResponse{
 		CoreEntity: entity.CoreEntity{

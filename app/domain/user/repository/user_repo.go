@@ -89,6 +89,7 @@ func (r *userRepository) Login(input *userDto.Login, context ...*fiber.Ctx) (str
 	c := context[0]
 	c.Set("Authorization", "Bearer "+t)
 	return t, nil
+
 }
 
 func (r *userRepository) hashPassword(password string) (string, error) {
@@ -144,10 +145,12 @@ func (r *userRepository) CreateAccount(input *userDto.CreateAccount, context ...
 	}
 
 	// 비밀번호 해싱
-	hashedPassword, err := r.hashPassword(user.Password)
+
+	hashedPassword, err := r.hashPassword(input.Password)
 	if err != nil {
 		return nil, fmt.Errorf("failed to hash password: %w", err)
 	}
+
 	user.Password = hashedPassword
 
 	// DB에 저장

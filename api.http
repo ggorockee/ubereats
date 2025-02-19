@@ -32,7 +32,7 @@ POST http://localhost:2500/api/v1/user/create HTTP/1.1
 content-type: application/json
 
 {
-    "email": "test9@example.com",
+    "email": "test17@example.com",
 	"password" : "test123!@#", 
 	"password2": "test123!@#", 
 	"role": "client"
@@ -44,7 +44,7 @@ POST http://localhost:2500/api/v1/user/login HTTP/1.1
 content-type: application/json
 
 {
-    "email": "test9@example.com",
+    "email": "test17@example.com",
 	"password" : "test123!@#"
 }
 
@@ -56,3 +56,48 @@ Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoxfQ.jY
 ###
 GET http://localhost:2500/api/v1/user/me HTTP/1.1
 content-type: application/json
+
+###
+POST http://localhost:2500/api/v1/category HTTP/1.1
+content-type: application/json
+
+###
+GET http://localhost:2500/api/v1/category HTTP/1.1
+content-type: application/json
+
+###
+GET http://localhost:2500/api/v1/category/1 HTTP/1.1
+content-type: application/json
+
+###
+POST http://localhost:2500/api/v1/category HTTP/1.1
+content-type: application/json
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjo5fQ.SzKlPyNXeEqmJerb6JAitWrL-6Zm0stWlBbhEvEtZ6M
+
+{
+    "name": "category2",
+	"cover_img": "cover_img2"
+}
+
+###
+PUT http://localhost:2500/api/v1/category/4 HTTP/1.1
+content-type: application/json
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjo5fQ.SzKlPyNXeEqmJerb6JAitWrL-6Zm0stWlBbhEvEtZ6M
+
+{
+    "name": "update_category1"
+}
+
+###
+DELETE http://localhost:2500/api/v1/category/3 HTTP/1.1
+content-type: application/json
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjo5fQ.SzKlPyNXeEqmJerb6JAitWrL-6Zm0stWlBbhEvEtZ6M
+
+###
+GET http://localhost:2500/api/v1/category/1 HTTP/1.1
+content-type: application/json
+
+
+
+
+

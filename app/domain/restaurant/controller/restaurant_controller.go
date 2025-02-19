@@ -2,6 +2,7 @@ package controller
 
 import (
 	"ubereats/app"
+	"ubereats/config"
 
 	"ubereats/app/core/helper/common"
 	restaurantDto "ubereats/app/domain/restaurant/dto"
@@ -20,6 +21,7 @@ type RestaurantController interface {
 
 type restaurantController struct {
 	restaurantSvc restaurantSvc.RestaurantService
+	cfg           *config.Config
 }
 
 // UpdateRestaurant implements RestaurantController.
@@ -110,6 +112,9 @@ func (ctrl *restaurantController) Table() []app.Mapping {
 			Method:  fiber.MethodPost,
 			Path:    v1 + "",
 			Handler: ctrl.CreateRestaurant,
+			Middlewares: []fiber.Handler{
+				app.AuthMiddleware(ctrl.cfg),
+			},
 		},
 
 		{
@@ -120,8 +125,9 @@ func (ctrl *restaurantController) Table() []app.Mapping {
 	}
 }
 
-func NewRestaurantController(r restaurantSvc.RestaurantService) RestaurantController {
+func NewRestaurantController(r restaurantSvc.RestaurantService, c *config.Config) RestaurantController {
 	return &restaurantController{
 		restaurantSvc: r,
+		cfg:           c,
 	}
 }
