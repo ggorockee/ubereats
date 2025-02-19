@@ -7,6 +7,7 @@ import (
 	userDto "ubereats/app/domain/user/dto"
 	userRes "ubereats/app/domain/user/response"
 	userSvc "ubereats/app/domain/user/service"
+	"ubereats/app/middleware"
 	"ubereats/config"
 
 	"github.com/gofiber/fiber/v2"
@@ -181,7 +182,7 @@ func (ctrl *userController) Table() []app.Mapping {
 			Path:    v1 + "/me",
 			Handler: ctrl.Me,
 			Middlewares: []fiber.Handler{
-				app.AuthMiddleware(ctrl.cfg),
+				middleware.AuthMiddleware(ctrl.cfg),
 			},
 		},
 

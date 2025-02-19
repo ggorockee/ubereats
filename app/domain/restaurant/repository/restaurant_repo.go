@@ -1,6 +1,7 @@
 package repository
 
 import (
+	"errors"
 	"ubereats/app/core/entity"
 	"ubereats/app/core/helper/common"
 
@@ -12,8 +13,8 @@ import (
 
 type RestaurantRepository interface {
 	GetAllRestaurant(context ...*fiber.Ctx) (*[]entity.Restaurant, error)
-	CreateRestaurant(input *restaurantDto.CreateRestaurant, context ...*fiber.Ctx) (*entity.Restaurant, error)
-	UpdateRestaurant(input *restaurantDto.UpdateRestaurant, id int, context ...*fiber.Ctx) (*entity.Restaurant, error)
+	CreateRestaurant(input *restaurantDto.CreateRestaurant, c *fiber.Ctx) (*entity.Restaurant, error)
+	UpdateRestaurant(input *restaurantDto.UpdateRestaurant, id int, c *fiber.Ctx) (*entity.Restaurant, error)
 	GetFindById(id int, context ...*fiber.Ctx) (*entity.Restaurant, error)
 }
 
@@ -32,8 +33,8 @@ func (r *restaurantRepository) GetFindById(id int, context ...*fiber.Ctx) (*enti
 }
 
 // UpdateRestaurant implements RestaurantRepository.
-func (r *restaurantRepository) UpdateRestaurant(input *restaurantDto.UpdateRestaurant, id int, context ...*fiber.Ctx) (*entity.Restaurant, error) {
-	restaurant, err := r.GetFindById(id, context...)
+func (r *restaurantRepository) UpdateRestaurant(input *restaurantDto.UpdateRestaurant, id int, c *fiber.Ctx) (*entity.Restaurant, error) {
+	restaurant, err := r.GetFindById(id, c)
 	if err != nil {
 		return nil, err
 	}
@@ -49,13 +50,33 @@ func (r *restaurantRepository) UpdateRestaurant(input *restaurantDto.UpdateResta
 }
 
 // CreateRestaurant implements RestaurantRepository.
-func (r *restaurantRepository) CreateRestaurant(input *restaurantDto.CreateRestaurant, context ...*fiber.Ctx) (*entity.Restaurant, error) {
+func (r *restaurantRepository) CreateRestaurant(input *restaurantDto.CreateRestaurant, c *fiber.Ctx) (*entity.Restaurant, error) {
+
+	user, ok := c.Locals("request_user").(entity.User)
+	if !ok {
+		return nil, errors.New("user not authenticated")
+	}
+
 	var restaurant entity.Restaurant
+
 	if err := common.DecodeStructure(input, &restaurant); err != nil {
 		return nil, err
 	}
 
+	restaurant.OwnerID = user.ID
+
+	if err := restaurant.Validate(); err != nil {
+		return nil, err
+	}
+
 	if err := r.db.Create(&restaurant).Error; err != nil {
+		return nil, err
+	}
+
+	if err := r.db.
+		Preload("Category").
+		Preload("Owner").
+		First(&restaurant).Error; err != nil {
 		return nil, err
 	}
 

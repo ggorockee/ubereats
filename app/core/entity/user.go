@@ -13,9 +13,10 @@ func (r UserRole) IsValid() bool {
 
 // UserRole 상수 정의
 const (
-	RoleClient   UserRole = "client"
-	RoleOwner    UserRole = "owner"
-	RoleDelivery UserRole = "delivery"
+	RoleClient   UserRole = "Client"
+	RoleOwner    UserRole = "Owner"
+	RoleDelivery UserRole = "Delivery"
+	RoleAny      UserRole = "Any"
 )
 
 // User는 사용자 엔티티를 나타냅니다.

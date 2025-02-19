@@ -8,6 +8,7 @@ import (
 	categoryDto "ubereats/app/domain/category/dto"
 	categoryRes "ubereats/app/domain/category/response"
 	categorySvc "ubereats/app/domain/category/service"
+	"ubereats/app/middleware"
 
 	"github.com/gofiber/fiber/v2"
 )
@@ -190,7 +191,7 @@ func (ctrl *categoryController) Table() []app.Mapping {
 			Path:    v1 + "",
 			Handler: ctrl.CreateCategory,
 			Middlewares: []fiber.Handler{
-				app.AuthMiddleware(ctrl.cfg),
+				middleware.AuthMiddleware(ctrl.cfg),
 			},
 		},
 		{
@@ -198,7 +199,7 @@ func (ctrl *categoryController) Table() []app.Mapping {
 			Path:    v1 + "/:id",
 			Handler: ctrl.UpdateCategory,
 			Middlewares: []fiber.Handler{
-				app.AuthMiddleware(ctrl.cfg),
+				middleware.AuthMiddleware(ctrl.cfg),
 			},
 		},
 		{
@@ -206,7 +207,7 @@ func (ctrl *categoryController) Table() []app.Mapping {
 			Path:    v1 + "/:id",
 			Handler: ctrl.DeleteCategory,
 			Middlewares: []fiber.Handler{
-				app.AuthMiddleware(ctrl.cfg),
+				middleware.AuthMiddleware(ctrl.cfg),
 			},
 		},
 	}

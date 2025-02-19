@@ -40,7 +40,9 @@ func GenRestaurantRes(m *entity.Restaurant) RestaurantResponse {
 	}
 
 	// Category가 nil이 아닌 경우에만 매핑
+
 	if m.Category != nil {
+
 		resp.Category = &Category{
 			ID:       m.Category.ID,
 			Name:     m.Category.Name,

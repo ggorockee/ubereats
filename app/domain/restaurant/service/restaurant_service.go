@@ -12,8 +12,8 @@ import (
 
 type RestaurantService interface {
 	GetAllRestaurant(context ...*fiber.Ctx) (*[]entity.Restaurant, error)
-	CreateRestaurant(input *restaurantDto.CreateRestaurant, context ...*fiber.Ctx) (*entity.Restaurant, error)
-	UpdateRestaurant(input *restaurantDto.UpdateRestaurant, id int, context ...*fiber.Ctx) (*entity.Restaurant, error)
+	CreateRestaurant(input *restaurantDto.CreateRestaurant, c *fiber.Ctx) (*entity.Restaurant, error)
+	UpdateRestaurant(input *restaurantDto.UpdateRestaurant, id int, c *fiber.Ctx) (*entity.Restaurant, error)
 }
 
 type restaurantService struct {
@@ -22,11 +22,11 @@ type restaurantService struct {
 }
 
 // UpdateRestaurant implements RestaurantService.
-func (s *restaurantService) UpdateRestaurant(input *restaurantDto.UpdateRestaurant, id int, context ...*fiber.Ctx) (*entity.Restaurant, error) {
+func (s *restaurantService) UpdateRestaurant(input *restaurantDto.UpdateRestaurant, id int, c *fiber.Ctx) (*entity.Restaurant, error) {
 	var err error
 	var restaurant *entity.Restaurant
 	err = s.db.Transaction(func(tx *gorm.DB) error {
-		restaurant, err = s.restaurantRepo.UpdateRestaurant(input, id, context...)
+		restaurant, err = s.restaurantRepo.UpdateRestaurant(input, id, c)
 		if err != nil {
 			return err
 		}
@@ -37,11 +37,11 @@ func (s *restaurantService) UpdateRestaurant(input *restaurantDto.UpdateRestaura
 }
 
 // CreateRestaurant implements RestaurantService.
-func (s *restaurantService) CreateRestaurant(input *restaurantDto.CreateRestaurant, context ...*fiber.Ctx) (*entity.Restaurant, error) {
+func (s *restaurantService) CreateRestaurant(input *restaurantDto.CreateRestaurant, c *fiber.Ctx) (*entity.Restaurant, error) {
 	var err error
 	var restaurant *entity.Restaurant
 	err = s.db.Transaction(func(tx *gorm.DB) error {
-		restaurant, err = s.restaurantRepo.CreateRestaurant(input, context...)
+		restaurant, err = s.restaurantRepo.CreateRestaurant(input, c)
 		if err != nil {
 			return err
 		}

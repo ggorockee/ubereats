@@ -4,10 +4,12 @@ import (
 	"ubereats/app"
 	"ubereats/config"
 
+	"ubereats/app/core/entity"
 	"ubereats/app/core/helper/common"
 	restaurantDto "ubereats/app/domain/restaurant/dto"
 	restaurantRes "ubereats/app/domain/restaurant/response"
 	restaurantSvc "ubereats/app/domain/restaurant/service"
+	"ubereats/app/middleware"
 
 	"github.com/gofiber/fiber/v2"
 )
@@ -113,7 +115,10 @@ func (ctrl *restaurantController) Table() []app.Mapping {
 			Path:    v1 + "",
 			Handler: ctrl.CreateRestaurant,
 			Middlewares: []fiber.Handler{
-				app.AuthMiddleware(ctrl.cfg),
+				middleware.AuthMiddleware(ctrl.cfg),
+				middleware.Role(middleware.AllowedRoles{
+					entity.RoleOwner,
+				}),
 			},
 		},
 
