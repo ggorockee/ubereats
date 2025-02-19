@@ -2,6 +2,9 @@ server:
   port: 2500
 
 
+secret:
+  jwt: "secret"
+
 infra:
   db:
     user: "root"

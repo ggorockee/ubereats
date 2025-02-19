@@ -3,6 +3,11 @@ package config
 type Config struct {
 	Server Server `mapstructure:"server"`
 	Infra  Infra  `mapstructure:"infra"`
+	Secret Secret `mapstructure:"secret"`
+}
+
+type Secret struct {
+	Jwt string `mapstructure:"jwt"`
 }
 
 type Server struct {

@@ -45,5 +45,5 @@ type Mapping struct {
 	Method      string
 	Path        string
 	Handler     func(ctx *fiber.Ctx) error
-	Middlewares []func(*fiber.Ctx) error
+	Middlewares []fiber.Handler
 }

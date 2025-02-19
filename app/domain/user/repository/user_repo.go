@@ -5,10 +5,12 @@ import (
 	"fmt"
 	"ubereats/app/core/entity"
 	"ubereats/app/core/helper/common"
+	"ubereats/config"
 
 	userDto "ubereats/app/domain/user/dto"
 
 	"github.com/gofiber/fiber/v2"
+	"github.com/golang-jwt/jwt/v5"
 	"golang.org/x/crypto/bcrypt"
 	"gorm.io/gorm"
 )
@@ -19,10 +21,74 @@ type UserRepository interface {
 
 	GetFindById(id int, context ...*fiber.Ctx) (*entity.User, error)
 	hashPassword(password string) (string, error)
+	Login(input *userDto.Login, context ...*fiber.Ctx) (string, error)
+	CheckPasswordHash(password, hash string) bool
+	Me(c *fiber.Ctx) (*entity.User, error)
 }
 
 type userRepository struct {
-	db *gorm.DB
+	db  *gorm.DB
+	cfg *config.Config
+}
+
+func (r *userRepository) Me(c *fiber.Ctx) (*entity.User, error) {
+	if c == nil {
+		return nil, errors.New("fiber context is required but nil provided")
+	}
+
+	// request_user 가져오기
+	userRaw := c.Locals("request_user")
+	if userRaw == nil {
+		return nil, errors.New("no user found in request context")
+	}
+
+	// entity.User로 캐스팅
+	user, ok := userRaw.(entity.User)
+	if !ok {
+		// anonymous 문자열인지 확인 (AuthMiddleware와 연계)
+		if anon, isString := userRaw.(string); isString && anon == "anonymous" {
+			return nil, errors.New("user is not authenticated")
+		}
+		return nil, errors.New("failed to cast request_user to entity.User")
+	}
+
+	return &user, nil
+}
+
+func (r *userRepository) CheckPasswordHash(password, hash string) bool {
+	err := bcrypt.CompareHashAndPassword([]byte(hash), []byte(password))
+	return err == nil
+}
+
+func (r *userRepository) Login(input *userDto.Login, context ...*fiber.Ctx) (string, error) {
+	email := input.Email
+	password := input.Password
+
+	var existingUser entity.User
+	if err := r.db.Where("email = ?", email).First(&existingUser).Error; err != nil {
+		return "", err
+	}
+
+	if !r.CheckPasswordHash(password, existingUser.Password) {
+		return "", errors.New("password is incorrect")
+	}
+
+	token := jwt.New(jwt.SigningMethodHS256)
+	claims := token.Claims.(jwt.MapClaims)
+
+	claims["user_id"] = existingUser.ID
+	t, err := token.SignedString([]byte(r.cfg.Secret.Jwt))
+	if err != nil {
+		return "", err
+	}
+
+	if len(context) != 1 {
+		return "", errors.New("fiber context not parsing")
+	}
+
+	c := context[0]
+	c.Set("Authorization", "Bearer "+t)
+	return t, nil
 }
 
 func (r *userRepository) hashPassword(password string) (string, error) {
@@ -101,6 +167,6 @@ func (r *userRepository) GetAllUser(context ...*fiber.Ctx) (*[]entity.User, erro
 	return &users, nil
 }
 
-func NewUserRepository(d *gorm.DB) UserRepository {
-	return &userRepository{db: d}
+func NewUserRepository(d *gorm.DB, c *config.Config) UserRepository {
+	return &userRepository{db: d, cfg: c}
 }

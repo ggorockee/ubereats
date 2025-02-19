@@ -13,7 +13,9 @@ import (
 type UserService interface {
 	GetAllUser(context ...*fiber.Ctx) (*[]entity.User, error)
 	CreateAccount(input *userDto.CreateAccount, context ...*fiber.Ctx) (*entity.User, error)
+	Login(input *userDto.Login, context ...*fiber.Ctx) (string, error)
 	// UpdateUser(input *userDto.UpdateUser, id int, context ...*fiber.Ctx) (*entity.User, error)
+	Me(c *fiber.Ctx) (*entity.User, error)
 }
 
 type userService struct {
@@ -35,6 +37,32 @@ type userService struct {
 // 	return user, err
 
 // }
+
+func (s *userService) Me(c *fiber.Ctx) (*entity.User, error) {
+	var err error
+	var user *entity.User
+	err = s.db.Transaction(func(tx *gorm.DB) error {
+		user, err = s.userRepo.Me(c)
+		if err != nil {
+			return err
+		}
+		return nil
+	})
+	return user, err
+}
+
+func (s *userService) Login(input *userDto.Login, context ...*fiber.Ctx) (string, error) {
+	var err error
+	var token string
+	err = s.db.Transaction(func(tx *gorm.DB) error {
+		token, err = s.userRepo.Login(input, context...)
+		if err != nil {
+			return err
+		}
+		return nil
+	})
+	return token, err
+}
 
 // CreateUser implements UserService.
 func (s *userService) CreateAccount(input *userDto.CreateAccount, context ...*fiber.Ctx) (*entity.User, error) {
