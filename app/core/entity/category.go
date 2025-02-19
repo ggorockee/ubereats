@@ -6,7 +6,7 @@ type Category struct {
 	CoreEntity
 	Name        string       `gorm:"type:varchar(255);not null" json:"name"`
 	CoverImg    string       `gorm:"type:varchar(255);not null" json:"cover_img"`
-	Restaurants []Restaurant `gorm:"foreignKey:CategoryID" json:"restaurants"`
+	Restaurants []Restaurant `gorm:"foreignKey:CategoryID" json:"restaurants,omitempty"`
 }
 
 func (Category) TableName() string {

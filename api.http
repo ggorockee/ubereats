@@ -72,11 +72,11 @@ content-type: application/json
 ###
 POST http://localhost:2500/api/v1/category HTTP/1.1
 content-type: application/json
-Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjo5fQ.SzKlPyNXeEqmJerb6JAitWrL-6Zm0stWlBbhEvEtZ6M
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoxfQ.jYyRJbb0WImFoUUdcslQQfwnXTHJzne-6tsPd8Hrw0I
 
 {
-    "name": "category9",
-	"cover_img": "cover_img9"
+    "name": "category8",
+	"cover_img": "cover_img8"
 }
 
 ###
@@ -94,7 +94,7 @@ content-type: application/json
 Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjo5fQ.SzKlPyNXeEqmJerb6JAitWrL-6Zm0stWlBbhEvEtZ6M
 
 ###
-GET http://localhost:2500/api/v1/category/1 HTTP/1.1
+GET http://localhost:2500/api/v1/category HTTP/1.1
 content-type: application/json
 
 
@@ -102,19 +102,19 @@ content-type: application/json
 ###
 POST http://localhost:2500/api/v1/restaurant HTTP/1.1
 content-type: application/json
-Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoxMH0.OcDFmIaHOjiuwBbgrenT6u3iARzXi0MSHMnJiQdutEI
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoxfQ.jYyRJbb0WImFoUUdcslQQfwnXTHJzne-6tsPd8Hrw0I
 
 {
     "name": "res1",
     "cover_img": "abc",
     "address": "address1",
-    "category_id": 4
+    "category_id": 2
 }
 
 ###
-PUT http://localhost:2500/api/v1/restaurant/10 HTTP/1.1
+PUT http://localhost:2500/api/v1/restaurant/2 HTTP/1.1
 content-type: application/json
-Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoxMH0.OcDFmIaHOjiuwBbgrenT6u3iARzXi0MSHMnJiQdutEI
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoxfQ.jYyRJbb0WImFoUUdcslQQfwnXTHJzne-6tsPd8Hrw0I
 
 {
     "name": "update3",
@@ -122,3 +122,12 @@ Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoxMH0.O
     "address": "address1",
     "category_id": 4
 }
+
+###
+DELETE http://localhost:2500/api/v1/restaurant/2 HTTP/1.1
+content-type: application/json
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoxfQ.jYyRJbb0WImFoUUdcslQQfwnXTHJzne-6tsPd8Hrw0I
+
+###
+GET http://localhost:2500/api/v1/restaurant/3 HTTP/1.1
+content-type: application/json

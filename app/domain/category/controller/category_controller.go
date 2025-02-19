@@ -4,6 +4,7 @@ import (
 	"ubereats/app"
 	"ubereats/config"
 
+	"ubereats/app/core/entity"
 	"ubereats/app/core/helper/common"
 	categoryDto "ubereats/app/domain/category/dto"
 	categoryRes "ubereats/app/domain/category/response"
@@ -154,6 +155,11 @@ func (ctrl *categoryController) CreateCategory(c *fiber.Ctx) error {
 
 // GetAll implements CategoryController.
 func (ctrl *categoryController) GetAllCategory(c *fiber.Ctx) error {
+	type categoryWithCount struct {
+		entity.Category
+		RestaurantCount int `json:"restaurant_count"`
+	}
+
 	categories, err := ctrl.categorySvc.GetAllCategory(c)
 	if err != nil {
 		return common.ErrorResponse(c, common.ErrArg{
@@ -164,10 +170,27 @@ func (ctrl *categoryController) GetAllCategory(c *fiber.Ctx) error {
 		})
 	}
 
-	categoriesResponse := categoryRes.GenCategoriesRes(categories)
+	result := make([]categoryWithCount, len(*categories))
+	for i, category := range *categories {
+		count, err := ctrl.categorySvc.CountRestaurants(&category)
+		if err != nil {
+			return common.ErrorResponse(c, common.ErrArg{
+				IsError: true,
+				Code:    fiber.StatusBadRequest,
+				Message: err.Error(),
+				Data:    nil,
+			})
+		}
+		result[i] = categoryWithCount{
+			Category:        category,
+			RestaurantCount: count,
+		}
+	}
+
+	// categoriesResponse := categoryRes.GenCategoriesRes(categories)
 	return common.SuccessResponse(c, common.SuccessArg{
 		Message: "Success",
-		Data:    categoriesResponse,
+		Data:    result,
 	})
 }
 

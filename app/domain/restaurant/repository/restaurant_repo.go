@@ -2,11 +2,10 @@ package repository
 
 import (
 	"errors"
-	"fmt"
-	"log"
 	"ubereats/app/core/entity"
 	"ubereats/app/core/helper/common"
 
+	categoryRepo "ubereats/app/domain/category/repository"
 	restaurantDto "ubereats/app/domain/restaurant/dto"
 
 	"github.com/gofiber/fiber/v2"
@@ -17,11 +16,26 @@ type RestaurantRepository interface {
 	GetAllRestaurant(context ...*fiber.Ctx) (*[]entity.Restaurant, error)
 	CreateRestaurant(input *restaurantDto.CreateRestaurant, c *fiber.Ctx) (*entity.Restaurant, error)
 	UpdateRestaurant(input *restaurantDto.UpdateRestaurant, id int, c *fiber.Ctx) (*entity.Restaurant, error)
+	DeleteRestaurant(id int, c *fiber.Ctx) error
 	GetFindById(id int, context ...*fiber.Ctx) (*entity.Restaurant, error)
 }
 
 type restaurantRepository struct {
-	db *gorm.DB
+	db           *gorm.DB
+	categoryRepo categoryRepo.CategoryRepository
+}
+
+func (r *restaurantRepository) DeleteRestaurant(id int, c *fiber.Ctx) error {
+	restaurant, err := r.GetFindById(id, c)
+	if err != nil {
+		return err
+	}
+
+	if err := r.db.Delete(restaurant).Error; err != nil {
+		return err
+	}
+
+	return nil
 }
 
 // GetFindById implements RestaurantRepository.
@@ -41,33 +55,28 @@ func (r *restaurantRepository) UpdateRestaurant(input *restaurantDto.UpdateResta
 		return nil, err
 	}
 
-	log.Println("categoryID >>>", input.CategoryID)
 	if err := common.DecodeStructure(input, restaurant); err != nil {
 		return nil, err
 	}
-
-	log.Println("categoryID >>>", restaurant.CategoryID)
 
 	if err := restaurant.Validate(); err != nil {
 		return nil, err
 	}
 
-	log.Println("categor~~~yID >>>", restaurant.CategoryID)
-
-	// if err := r.db.Model(restaurant).Updates(restaurant).Error; err != nil {
-	// 	return nil, err
-	// }
-	if err := r.db.Model(restaurant).Select("name", "cover_img", "address", "category_id", "owner_id").Updates(restaurant).Error; err != nil {
-		return nil, fmt.Errorf("failed to update restaurant: %w", err)
-	}
-
-	log.Println("categoryID @@@", restaurant.CategoryID)
-
-	if err := r.db.Preload("Owner").Preload("Category").Where("id = ?", id).First(&restaurant).Error; err != nil {
+	category, err := r.categoryRepo.GetFindById(input.CategoryID)
+	if err != nil {
 		return nil, err
 	}
 
-	log.Println("categoryID", restaurant.CategoryID)
+	restaurant.Category = category
+
+	if err := r.db.Save(restaurant).Error; err != nil {
+		return nil, err
+	}
+
+	if err := r.db.Preload("Owner").Preload("Category").Where("id = ?", id).First(restaurant).Error; err != nil {
+		return nil, err
+	}
 
 	return restaurant, nil
 }
@@ -115,6 +124,9 @@ func (r *restaurantRepository) GetAllRestaurant(context ...*fiber.Ctx) (*[]entit
 	return &restaurants, nil
 }
 
-func NewRestaurantRepository(d *gorm.DB) RestaurantRepository {
-	return &restaurantRepository{db: d}
+func NewRestaurantRepository(d *gorm.DB, c categoryRepo.CategoryRepository) RestaurantRepository {
+	return &restaurantRepository{
+		db:           d,
+		categoryRepo: c,
+	}
 }

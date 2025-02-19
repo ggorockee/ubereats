@@ -16,11 +16,25 @@ type CategoryService interface {
 	UpdateCategory(input *categoryDto.UpdateCategory, id int, c *fiber.Ctx) (*entity.Category, error)
 	GetFindById(id int, context ...*fiber.Ctx) (*entity.Category, error)
 	DeleteCategory(id int, c *fiber.Ctx) error
+	CountRestaurants(category *entity.Category) (int, error)
 }
 
 type categoryService struct {
 	db           *gorm.DB
 	categoryRepo categoryRepo.CategoryRepository
+}
+
+func (s *categoryService) CountRestaurants(category *entity.Category) (int, error) {
+	var count int
+	var err error
+	err = s.db.Transaction(func(tx *gorm.DB) error {
+		count, err = s.categoryRepo.CountRestaurants(category)
+		if err != nil {
+			return err
+		}
+		return nil
+	})
+	return count, err
 }
 
 // DeleteCategory implements CategoryService.

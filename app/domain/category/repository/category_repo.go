@@ -16,10 +16,20 @@ type CategoryRepository interface {
 	UpdateCategory(input *categoryDto.UpdateCategory, id int, c *fiber.Ctx) (*entity.Category, error)
 	GetFindById(id int, context ...*fiber.Ctx) (*entity.Category, error)
 	DeleteCategory(id int, c *fiber.Ctx) error
+	CountRestaurants(category *entity.Category) (int, error)
 }
 
 type categoryRepository struct {
 	db *gorm.DB
+}
+
+func (r *categoryRepository) CountRestaurants(category *entity.Category) (int, error) {
+	var count int64
+	if err := r.db.Model(&entity.Restaurant{}).Where("category_id = ?", category.ID).Count(&count).Error; err != nil {
+		return 0, err
+	}
+
+	return int(count), nil
 }
 
 func (r *categoryRepository) DeleteCategory(id int, c *fiber.Ctx) error {
