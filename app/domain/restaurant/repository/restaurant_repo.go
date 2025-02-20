@@ -13,16 +13,74 @@ import (
 )
 
 type RestaurantRepository interface {
-	GetAllRestaurant(context ...*fiber.Ctx) (*[]entity.Restaurant, error)
 	CreateRestaurant(input *restaurantDto.CreateRestaurant, c *fiber.Ctx) (*entity.Restaurant, error)
 	UpdateRestaurant(input *restaurantDto.UpdateRestaurant, id int, c *fiber.Ctx) (*entity.Restaurant, error)
 	DeleteRestaurant(id int, c *fiber.Ctx) error
-	GetFindById(id int, context ...*fiber.Ctx) (*entity.Restaurant, error)
+	AllRestaurants(input restaurantDto.RestaurantsInput) (*[]entity.Restaurant, error)
+	FindRestaurantById(input restaurantDto.RestaurantInput) (*entity.Restaurant, error)
+	SearchRestaurantByName(input restaurantDto.SearchRestaurant) (*[]entity.Restaurant, error)
+	AllCategories() (*[]entity.Category, error)
+	CountRestaurants(category entity.Category) (int, error)
 }
 
 type restaurantRepository struct {
 	db           *gorm.DB
 	categoryRepo categoryRepo.CategoryRepository
+}
+
+func (r *restaurantRepository) SearchRestaurantByName(input restaurantDto.SearchRestaurant) (*[]entity.Restaurant, error) {
+	var restaurants []entity.Restaurant
+	if err := r.db.
+		Where("name LIKE ?", "%"+input.Query+"%").
+		Limit(25).
+		Offset((input.Page - 1) * 25).
+		Find(&restaurants).Error; err != nil {
+		return nil, err
+	}
+
+	return &restaurants, nil
+}
+
+func (r *restaurantRepository) FindRestaurantById(input restaurantDto.RestaurantInput) (*entity.Restaurant, error) {
+	var restaurant entity.Restaurant
+	if err := r.db.First(&restaurant, input.RestaurantID).Error; err != nil {
+		return nil, err
+	}
+
+	return &restaurant, nil
+}
+
+func (r *restaurantRepository) CountRestaurants(category entity.Category) (int, error) {
+	var count int64
+	if err := r.db.
+		Model(&entity.Restaurant{}).
+		Where("category_id = ?", category.ID).
+		Count(&count).Error; err != nil {
+		return 0, err
+	}
+	return int(count), nil
+}
+
+func (r *restaurantRepository) AllRestaurants(input restaurantDto.RestaurantsInput) (*[]entity.Restaurant, error) {
+	var restaurants []entity.Restaurant
+	if err := r.db.
+		Limit(25).
+		Offset((input.Page - 1) * 25).
+		Preload("Owner").
+		Preload("Category").
+		Find(&restaurants).Error; err != nil {
+		return nil, errors.New("could not load restaurants")
+	}
+
+	return &restaurants, nil
+}
+
+func (r *restaurantRepository) AllCategories() (*[]entity.Category, error) {
+	var categories []entity.Category
+	if err := r.db.Find(&categories).Error; err != nil {
+		return nil, err
+	}
+	return &categories, nil
 }
 
 func (r *restaurantRepository) DeleteRestaurant(id int, c *fiber.Ctx) error {
@@ -63,7 +121,7 @@ func (r *restaurantRepository) UpdateRestaurant(input *restaurantDto.UpdateResta
 		return nil, err
 	}
 
-	category, err := r.categoryRepo.GetFindById(input.CategoryID)
+	category, err := r.categoryRepo.GetFindById(restaurant.CategoryID)
 	if err != nil {
 		return nil, err
 	}
@@ -113,15 +171,6 @@ func (r *restaurantRepository) CreateRestaurant(input *restaurantDto.CreateResta
 	}
 
 	return &restaurant, nil
-}
-
-// GetAll implements RestaurantRepository.
-func (r *restaurantRepository) GetAllRestaurant(context ...*fiber.Ctx) (*[]entity.Restaurant, error) {
-	var restaurants []entity.Restaurant
-	if err := r.db.Find(&restaurants).Error; err != nil {
-		return nil, err
-	}
-	return &restaurants, nil
 }
 
 func NewRestaurantRepository(d *gorm.DB, c categoryRepo.CategoryRepository) RestaurantRepository {

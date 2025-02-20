@@ -1,11 +1,11 @@
 package service
 
 import (
+	"fmt"
 	"ubereats/app/core/entity"
 
 	restaurantDto "ubereats/app/domain/restaurant/dto"
 	restaurantRepo "ubereats/app/domain/restaurant/repository"
-
 	restaurantRes "ubereats/app/domain/restaurant/response"
 
 	"github.com/gofiber/fiber/v2"
@@ -13,11 +13,9 @@ import (
 )
 
 type RestaurantService interface {
-	GetAllRestaurant(c *fiber.Ctx) (*[]entity.Restaurant, error)
 	CreateRestaurant(input *restaurantDto.CreateRestaurant, c *fiber.Ctx) (*entity.Restaurant, error)
 	UpdateRestaurant(input *restaurantDto.UpdateRestaurant, id int, c *fiber.Ctx) (*entity.Restaurant, error)
 	DeleteRestaurant(id int, c *fiber.Ctx) error
-	GetFindById(id int, c *fiber.Ctx) (*entity.Restaurant, error)
 	AllRestaurants(input restaurantDto.RestaurantsInput) (*restaurantRes.RestaurantsResponse, error)
 	FindRestaurantById(input restaurantDto.RestaurantInput) (*restaurantRes.RestaurantResponse, error)
 	SearchRestaurantByName(input restaurantDto.SearchRestaurant) (*restaurantRes.SearchRestaurantResponse, error)
@@ -32,35 +30,53 @@ type restaurantService struct {
 
 // AllCategories implements RestaurantService.
 func (s *restaurantService) AllCategories() (*restaurantRes.AllCategoriesResponse, error) {
-	var categories []entity.Category
-	if err := s.db.Find(&categories).Error; err != nil {
-		return &restaurantRes.AllCategoriesResponse{
-			BaseResponse: restaurantRes.BaseResponse{Ok: false, Error: "Could not load categories"},
-		}, err
-	}
+	var categories *[]entity.Category
+
+	err := s.db.Transaction(func(tx *gorm.DB) error {
+		var err error
+		categories, err = s.restaurantRepo.AllCategories()
+		if err != nil {
+			return err
+		}
+		return nil
+	})
 
 	return &restaurantRes.AllCategoriesResponse{
 		BaseResponse: restaurantRes.BaseResponse{Ok: true},
-		Categories:   categories,
-	}, nil
+		Categories:   *categories,
+	}, err
 }
 
 // AllRestaurants implements RestaurantService.
 func (s *restaurantService) AllRestaurants(input restaurantDto.RestaurantsInput) (*restaurantRes.RestaurantsResponse, error) {
-	var restaurants []entity.Restaurant
-	if err := s.db.Limit(25).
-		Offset((input.Page - 1) * 25).
-		Find(&restaurants).Error; err != nil {
+	var restaurants *[]entity.Restaurant
+	err := s.db.Transaction(func(tx *gorm.DB) error {
+		var err error
+		restaurants, err = s.restaurantRepo.AllRestaurants(input)
+		if err != nil {
+			return err
+		}
+		return nil
+	})
+	if err != nil {
 		return &restaurantRes.RestaurantsResponse{
 			BaseResponse: restaurantRes.BaseResponse{
 				Ok:    false,
-				Error: "Could not load restaurants",
+				Error: "Could not load AllRestaurant",
 			},
 		}, err
 	}
 
 	var totalResults int64
-	if err := s.db.Model(&entity.Restaurant{}).Count(&totalResults).Error; err != nil {
+	err = s.db.Transaction(func(tx *gorm.DB) error {
+		err := tx.Model(&entity.Restaurant{}).Count(&totalResults).Error
+		if err != nil {
+			return err
+		}
+		return nil
+	})
+
+	if err != nil {
 		return &restaurantRes.RestaurantsResponse{
 			BaseResponse: restaurantRes.BaseResponse{
 				Ok:    false,
@@ -73,19 +89,24 @@ func (s *restaurantService) AllRestaurants(input restaurantDto.RestaurantsInput)
 		BaseResponse: restaurantRes.BaseResponse{
 			Ok: true,
 		},
-		Results:      restaurants,
+		Results:      *restaurants,
 		TotalPages:   int(totalResults+24) / 25, // ceil 처리
 		TotalResults: int(totalResults),
-	}, nil
+	}, err
 }
 
 // CountRestaurants implements RestaurantService.
 func (s *restaurantService) CountRestaurants(category entity.Category) (int, error) {
-	var count int64
-	if err := s.db.Model(&entity.Restaurant{}).Where("category_id = ?", category.ID).Count(&count).Error; err != nil {
-		return 0, err
-	}
-	return int(count), nil
+	var count int
+	err := s.db.Transaction(func(tx *gorm.DB) error {
+		var err error
+		count, err = s.restaurantRepo.CountRestaurants(category)
+		if err != nil {
+			return err
+		}
+		return nil
+	})
+	return count, err
 }
 
 // CreateRestaurant implements RestaurantService.
@@ -101,6 +122,18 @@ func (s *restaurantService) CreateRestaurant(input *restaurantDto.CreateRestaura
 
 // DeleteRestaurant implements RestaurantService.
 func (s *restaurantService) DeleteRestaurant(id int, c *fiber.Ctx) error {
+	user, ok := c.Locals("request_user").(entity.User)
+	if !ok {
+		return fmt.Errorf("user not authenticated")
+	}
+
+	restaurant, err := s.restaurantRepo.FindRestaurantById(restaurantDto.RestaurantInput{RestaurantID: id})
+	if err != nil {
+		return err
+	}
+	if restaurant.OwnerID != user.ID {
+		return fmt.Errorf("you can't delete a restaurant you don't own")
+	}
 	return s.db.Transaction(func(tx *gorm.DB) error {
 		return s.restaurantRepo.DeleteRestaurant(id, c)
 	})
@@ -108,61 +141,62 @@ func (s *restaurantService) DeleteRestaurant(id int, c *fiber.Ctx) error {
 
 // FindRestaurantById implements RestaurantService.
 func (s *restaurantService) FindRestaurantById(input restaurantDto.RestaurantInput) (*restaurantRes.RestaurantResponse, error) {
-	var restaurant entity.Restaurant
-	if err := s.db.First(&restaurant, input.RestaurantID).Error; err != nil {
+	var restaurant *entity.Restaurant
+	err := s.db.Transaction(func(tx *gorm.DB) error {
+		var err error
+		restaurant, err = s.restaurantRepo.FindRestaurantById(input)
+		if err != nil {
+			return err
+		}
+		return nil
+	})
+
+	if err != nil {
 		return &restaurantRes.RestaurantResponse{
 			BaseResponse: restaurantRes.BaseResponse{
 				Ok:    false,
 				Error: "Restaurant not found",
 			},
-		}, nil
+		}, err
 	}
+
 	return &restaurantRes.RestaurantResponse{
 		BaseResponse: restaurantRes.BaseResponse{Ok: true},
-		Restaurant:   &restaurant,
+		Restaurant:   restaurant,
 	}, nil
-
-}
-
-// GetAllRestaurant implements RestaurantService.
-func (s *restaurantService) GetAllRestaurant(c *fiber.Ctx) (*[]entity.Restaurant, error) {
-	var restaurants *[]entity.Restaurant
-	err := s.db.Transaction(func(tx *gorm.DB) error {
-		var err error
-		restaurants, err = s.restaurantRepo.GetAllRestaurant(c)
-		return err
-	})
-	return restaurants, err
-}
-
-// GetFindById implements RestaurantService.
-func (s *restaurantService) GetFindById(id int, c *fiber.Ctx) (*entity.Restaurant, error) {
-	var restaurant *entity.Restaurant
-	err := s.db.Transaction(func(tx *gorm.DB) error {
-		var err error
-		restaurant, err = s.restaurantRepo.GetFindById(id, c)
-		return err
-	})
-	return restaurant, err
 }
 
 // SearchRestaurantByName implements RestaurantService.
 func (s *restaurantService) SearchRestaurantByName(input restaurantDto.SearchRestaurant) (*restaurantRes.SearchRestaurantResponse, error) {
-	var restaurants []entity.Restaurant
-	if err := s.db.Where("name LIKE ?", "%"+input.Query+"%").
-		Limit(25).
-		Offset((input.Page - 1) * 25).
-		Find(&restaurants).Error; err != nil {
+	var restaurants *[]entity.Restaurant
+	err := s.db.Transaction(func(tx *gorm.DB) error {
+		var err error
+		restaurants, err = s.restaurantRepo.SearchRestaurantByName(input)
+		if err != nil {
+			return err
+		}
+		return nil
+	})
+
+	if err != nil {
 		return &restaurantRes.SearchRestaurantResponse{
 			BaseResponse: restaurantRes.BaseResponse{Ok: true, Error: "Could not search for restaurants"},
-		}, nil
+		}, err
 	}
 
 	var totalResults int64
-	if err := s.db.Model(&entity.Restaurant{}).Where("name LIKE ?", "%"+input.Query+"%").Count(&totalResults).Error; err != nil {
+	err = s.db.Transaction(func(tx *gorm.DB) error {
+		err := tx.Model(&entity.Restaurant{}).Where("name LIKE ?", "%"+input.Query+"%").Count(&totalResults).Error
+		if err != nil {
+			return err
+		}
+		return nil
+	})
+
+	if err != nil {
 		return &restaurantRes.SearchRestaurantResponse{
 			BaseResponse: restaurantRes.BaseResponse{Ok: false, Error: "Could not count restaurants"},
-			Restaurants:  restaurants,
+			Restaurants:  *restaurants,
 			TotalPages:   0,
 			TotalResults: 0,
 		}, err
@@ -170,7 +204,7 @@ func (s *restaurantService) SearchRestaurantByName(input restaurantDto.SearchRes
 
 	return &restaurantRes.SearchRestaurantResponse{
 		BaseResponse: restaurantRes.BaseResponse{Ok: true},
-		Restaurants:  restaurants,
+		Restaurants:  *restaurants,
 		TotalPages:   int(totalResults+24) / 25,
 		TotalResults: int(totalResults),
 	}, nil
@@ -178,8 +212,21 @@ func (s *restaurantService) SearchRestaurantByName(input restaurantDto.SearchRes
 
 // UpdateRestaurant implements RestaurantService.
 func (s *restaurantService) UpdateRestaurant(input *restaurantDto.UpdateRestaurant, id int, c *fiber.Ctx) (*entity.Restaurant, error) {
-	var restaurant *entity.Restaurant
-	err := s.db.Transaction(func(tx *gorm.DB) error {
+	user, ok := c.Locals("request_user").(entity.User)
+	if !ok {
+		return nil, fmt.Errorf("user not authenticated")
+	}
+
+	restaurant, err := s.restaurantRepo.FindRestaurantById(restaurantDto.RestaurantInput{RestaurantID: id})
+	if err != nil {
+		return nil, err
+	}
+
+	if restaurant.OwnerID != user.ID {
+		return nil, fmt.Errorf("you can't update a restaurant you don't own")
+	}
+
+	err = s.db.Transaction(func(tx *gorm.DB) error {
 		var err error
 		restaurant, err = s.restaurantRepo.UpdateRestaurant(input, id, c)
 		return err

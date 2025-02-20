@@ -14,7 +14,7 @@ type CategoryRepository interface {
 	GetAllCategory(context ...*fiber.Ctx) (*[]entity.Category, error)
 	CreateCategory(input *categoryDto.CreateCategory, c *fiber.Ctx) (*entity.Category, error)
 	UpdateCategory(input *categoryDto.UpdateCategory, id int, c *fiber.Ctx) (*entity.Category, error)
-	GetFindById(id int, context ...*fiber.Ctx) (*entity.Category, error)
+	FindCategoryById(id int) (*entity.Category, error)
 	DeleteCategory(id int, c *fiber.Ctx) error
 	CountRestaurants(category *entity.Category) (int, error)
 }
