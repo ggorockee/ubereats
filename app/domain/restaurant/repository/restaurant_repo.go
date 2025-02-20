@@ -1,171 +1,137 @@
 package repository
 
 import (
-	"errors"
 	"ubereats/app/core/entity"
-	"ubereats/app/core/helper/common"
 
-	categoryRepo "ubereats/app/domain/category/repository"
-	restaurantDto "ubereats/app/domain/restaurant/dto"
+	restDto "ubereats/app/domain/restaurant/dto"
 
-	"github.com/gofiber/fiber/v2"
 	"gorm.io/gorm"
 )
 
 type RestaurantRepository interface {
-	CreateRestaurant(input *restaurantDto.CreateRestaurant, c *fiber.Ctx) (*entity.Restaurant, error)
-	UpdateRestaurant(input *restaurantDto.UpdateRestaurant, id int, c *fiber.Ctx) (*entity.Restaurant, error)
-	DeleteRestaurant(id int, c *fiber.Ctx) error
-	AllRestaurants(input restaurantDto.RestaurantsInput) (*[]entity.Restaurant, error)
-	FindRestaurantById(input restaurantDto.RestaurantInput) (*entity.Restaurant, error)
-	SearchRestaurantByName(input restaurantDto.SearchRestaurant) (*[]entity.Restaurant, error)
-	AllCategories() (*[]entity.Category, error)
-	CountRestaurants(category entity.Category) (int, error)
+	CreateRestaurant(restaurant *restDto.Restaurant) (*entity.Restaurant, error)
+	FindRestaurantByID(id int) (*entity.Restaurant, error)
+	FindAll(page int) (*[]entity.Restaurant, *int, error)
+	FindByName(query string, page int) (*[]entity.Restaurant, *int, error)
+	UpdateRestaurant(id int, restaurant *restDto.Restaurant) (*entity.Restaurant, error)
+	DeleteRestaurant(id int) error
+	CreateDish(dish *restDto.Dish) (*entity.Dish, error)
+	FindDishByID(id int) (*entity.Dish, error)
+	UpdateDish(id int, dish *restDto.Dish) (*entity.Dish, error)
+	DeleteDish(id int) error
 }
 
 type restaurantRepository struct {
-	db           *gorm.DB
-	categoryRepo categoryRepo.CategoryRepository
+	db *gorm.DB
 }
 
-func (r *restaurantRepository) SearchRestaurantByName(input restaurantDto.SearchRestaurant) (*[]entity.Restaurant, error) {
-	var restaurants []entity.Restaurant
-	if err := r.db.
-		Where("name LIKE ?", "%"+input.Query+"%").
-		Limit(25).
-		Offset((input.Page - 1) * 25).
-		Find(&restaurants).Error; err != nil {
+// CreateDish implements RestaurantRepository.
+func (r *restaurantRepository) CreateDish(dish *restDto.Dish) (*entity.Dish, error) {
+	entityDish := entity.Dish{
+		Name:         dish.Name,
+		Price:        dish.Price,
+		Photo:        dish.Photo,
+		Description:  dish.Description,
+		RestaurantID: dish.RestaurantID,
+	}
+
+	if err := r.db.Create(&entityDish).Error; err != nil {
 		return nil, err
 	}
 
-	return &restaurants, nil
-}
-
-func (r *restaurantRepository) FindRestaurantById(input restaurantDto.RestaurantInput) (*entity.Restaurant, error) {
-	var restaurant entity.Restaurant
-	if err := r.db.First(&restaurant, input.RestaurantID).Error; err != nil {
-		return nil, err
-	}
-
-	return &restaurant, nil
-}
-
-func (r *restaurantRepository) CountRestaurants(category entity.Category) (int, error) {
-	var count int64
-	if err := r.db.
-		Model(&entity.Restaurant{}).
-		Where("category_id = ?", category.ID).
-		Count(&count).Error; err != nil {
-		return 0, err
-	}
-	return int(count), nil
-}
-
-func (r *restaurantRepository) AllRestaurants(input restaurantDto.RestaurantsInput) (*[]entity.Restaurant, error) {
-	var restaurants []entity.Restaurant
-	if err := r.db.
-		Limit(25).
-		Offset((input.Page - 1) * 25).
-		Preload("Owner").
-		Preload("Category").
-		Find(&restaurants).Error; err != nil {
-		return nil, errors.New("could not load restaurants")
-	}
-
-	return &restaurants, nil
-}
-
-func (r *restaurantRepository) AllCategories() (*[]entity.Category, error) {
-	var categories []entity.Category
-	if err := r.db.Find(&categories).Error; err != nil {
-		return nil, err
-	}
-	return &categories, nil
-}
-
-func (r *restaurantRepository) DeleteRestaurant(id int, c *fiber.Ctx) error {
-	restaurant, err := r.GetFindById(id, c)
-	if err != nil {
-		return err
-	}
-
-	if err := r.db.Delete(restaurant).Error; err != nil {
-		return err
-	}
-
-	return nil
-}
-
-// GetFindById implements RestaurantRepository.
-func (r *restaurantRepository) GetFindById(id int, context ...*fiber.Ctx) (*entity.Restaurant, error) {
-	var restaurant entity.Restaurant
-	if err := r.db.Preload("Owner").Preload("Category").Where("id = ?", id).First(&restaurant).Error; err != nil {
-		return nil, err
-	}
-
-	return &restaurant, nil
-}
-
-// UpdateRestaurant implements RestaurantRepository.
-func (r *restaurantRepository) UpdateRestaurant(input *restaurantDto.UpdateRestaurant, id int, c *fiber.Ctx) (*entity.Restaurant, error) {
-	restaurant, err := r.GetFindById(id, c)
-	if err != nil {
-		return nil, err
-	}
-
-	if err := common.DecodeStructure(input, restaurant); err != nil {
-		return nil, err
-	}
-
-	if err := restaurant.Validate(); err != nil {
-		return nil, err
-	}
-
-	category, err := r.categoryRepo.GetFindById(restaurant.CategoryID)
-	if err != nil {
-		return nil, err
-	}
-
-	restaurant.Category = category
-
-	if err := r.db.Save(restaurant).Error; err != nil {
-		return nil, err
-	}
-
-	if err := r.db.Preload("Owner").Preload("Category").Where("id = ?", id).First(restaurant).Error; err != nil {
-		return nil, err
-	}
-
-	return restaurant, nil
+	return &entityDish, nil
 }
 
 // CreateRestaurant implements RestaurantRepository.
-func (r *restaurantRepository) CreateRestaurant(input *restaurantDto.CreateRestaurant, c *fiber.Ctx) (*entity.Restaurant, error) {
-
-	user, ok := c.Locals("request_user").(entity.User)
-	if !ok {
-		return nil, errors.New("user not authenticated")
+func (r *restaurantRepository) CreateRestaurant(restaurant *restDto.Restaurant) (*entity.Restaurant, error) {
+	entityRestaurant := entity.Restaurant{
+		Name:     restaurant.Name,
+		CoverImg: restaurant.CoverImg,
+		Address:  restaurant.Address,
 	}
 
+	// (TODO) 관계 설정
+
+	if err := r.db.Create(&entityRestaurant).Error; err != nil {
+		return nil, err
+	}
+
+	return &entityRestaurant, nil
+}
+
+// DeleteDish implements RestaurantRepository.
+func (r *restaurantRepository) DeleteDish(id int) error {
+	dish, err := r.FindDishByID(id)
+	if err != nil {
+		return err
+	}
+	if err := r.db.Delete(dish).Error; err != nil {
+		return err
+	}
+	return nil
+}
+
+// DeleteRestaurant implements RestaurantRepository.
+func (r *restaurantRepository) DeleteRestaurant(id int) error {
+	restaurant, err := r.FindRestaurantByID(id)
+	if err != nil {
+		return err
+	}
+	if err := r.db.Delete(restaurant).Error; err != nil {
+		return err
+	}
+	return nil
+}
+
+// FindAll implements RestaurantRepository.
+func (r *restaurantRepository) FindAll(page int) (*[]entity.Restaurant, *int, error) {
+	var restaurants []entity.Restaurant
+	var total int64
+
+	if err := r.db.Model(&entity.Restaurant{}).Count(&total).Error; err != nil {
+		return nil, nil, err
+	}
+
+	if err := r.db.Offset((page - 1) * 25).Limit(25).Find(&restaurants).Error; err != nil {
+		return nil, nil, err
+	}
+
+	t := int(total)
+	return &restaurants, &t, nil
+}
+
+// FindByName implements RestaurantRepository.
+func (r *restaurantRepository) FindByName(query string, page int) (*[]entity.Restaurant, *int, error) {
+	var restaurants []entity.Restaurant
+	var total int64
+	if err := r.db.Model(&restDto.Restaurant{}).Where("name LIKE ?", "%"+query+"%").Count(&total).Error; err != nil {
+		return nil, nil, err
+	}
+	if err := r.db.Where("name LIKE ?", "%"+query+"%").Offset((page - 1) * 25).Limit(25).Find(&restaurants).Error; err != nil {
+		return nil, nil, err
+	}
+
+	t := int(total)
+	return &restaurants, &t, nil
+}
+
+// FindDishByID implements RestaurantRepository.
+func (r *restaurantRepository) FindDishByID(id int) (*entity.Dish, error) {
+	var dish entity.Dish
+	if err := r.db.Preload("Restaurant").
+		Where("id = ?", id).
+		First(&dish).Error; err != nil {
+		return nil, err
+	}
+
+	return &dish, nil
+}
+
+// FindRestaurantByID implements RestaurantRepository.
+func (r *restaurantRepository) FindRestaurantByID(id int) (*entity.Restaurant, error) {
 	var restaurant entity.Restaurant
-
-	if err := common.DecodeStructure(input, &restaurant); err != nil {
-		return nil, err
-	}
-
-	restaurant.OwnerID = user.ID
-
-	if err := restaurant.Validate(); err != nil {
-		return nil, err
-	}
-
-	if err := r.db.Create(&restaurant).Error; err != nil {
-		return nil, err
-	}
-
-	if err := r.db.
-		Preload("Category").
-		Preload("Owner").
+	if err := r.db.Preload("Menu").
+		Where("id = ?", id).
 		First(&restaurant).Error; err != nil {
 		return nil, err
 	}
@@ -173,9 +139,34 @@ func (r *restaurantRepository) CreateRestaurant(input *restaurantDto.CreateResta
 	return &restaurant, nil
 }
 
-func NewRestaurantRepository(d *gorm.DB, c categoryRepo.CategoryRepository) RestaurantRepository {
+// UpdateDish implements RestaurantRepository.
+func (r *restaurantRepository) UpdateDish(id int, dish *restDto.Dish) (*entity.Dish, error) {
+	entityDish, err := r.FindDishByID(id)
+	if err != nil {
+		return nil, err
+	}
+	if err := r.db.Model(entityDish).Updates(dish).Error; err != nil {
+		return nil, err
+	}
+
+	return entityDish, nil
+}
+
+// UpdateRestaurant implements RestaurantRepository.
+func (r *restaurantRepository) UpdateRestaurant(id int, restaurant *restDto.Restaurant) (*entity.Restaurant, error) {
+	entityRestaurant, err := r.FindRestaurantByID(id)
+	if err != nil {
+		return nil, err
+	}
+	if err := r.db.Model(entityRestaurant).Updates(restaurant).Error; err != nil {
+		return nil, err
+	}
+
+	return entityRestaurant, nil
+}
+
+func NewRestaurantRepository(d *gorm.DB) RestaurantRepository {
 	return &restaurantRepository{
-		db:           d,
-		categoryRepo: c,
+		db: d,
 	}
 }

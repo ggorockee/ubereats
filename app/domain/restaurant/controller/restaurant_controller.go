@@ -1,13 +1,10 @@
 package controller
 
 import (
-	"strconv"
 	"ubereats/app"
 	"ubereats/config"
 
 	"ubereats/app/core/entity"
-	"ubereats/app/core/helper/common"
-	restaurantDto "ubereats/app/domain/restaurant/dto"
 	restaurantSvc "ubereats/app/domain/restaurant/service"
 	"ubereats/app/middleware"
 
@@ -16,13 +13,15 @@ import (
 
 type RestaurantController interface {
 	Table() []app.Mapping
-	GetAllRestaurant(c *fiber.Ctx) error
-	CreateRestaurant(c *fiber.Ctx) error
-	UpdateRestaurant(c *fiber.Ctx) error
-	DeleteRestaurant(c *fiber.Ctx) error
+	AllRestaurants(c *fiber.Ctx) error
 	FindRestaurantById(c *fiber.Ctx) error
-	SearchRestaurant(c *fiber.Ctx) error
-	GetAllCategories(c *fiber.Ctx) error
+	SearchRestaurantByName(c *fiber.Ctx) error
+	CreateRestaurant(c *fiber.Ctx) error
+	CreateDish(c *fiber.Ctx) error
+	EditRestaurant(c *fiber.Ctx) error
+	EditDish(c *fiber.Ctx) error
+	DeleteRestaurant(c *fiber.Ctx) error
+	DeleteDish(c *fiber.Ctx) error
 }
 
 type restaurantController struct {
@@ -30,232 +29,116 @@ type restaurantController struct {
 	cfg           *config.Config
 }
 
+// AllRestaurants implements RestaurantController.
+func (ctrl *restaurantController) AllRestaurants(c *fiber.Ctx) error {
+	panic("unimplemented")
+}
+
+// CreateDish implements RestaurantController.
+func (ctrl *restaurantController) CreateDish(c *fiber.Ctx) error {
+	panic("unimplemented")
+}
+
+// CreateRestaurant implements RestaurantController.
+func (ctrl *restaurantController) CreateRestaurant(c *fiber.Ctx) error {
+	panic("unimplemented")
+}
+
+// DeleteDish implements RestaurantController.
+func (ctrl *restaurantController) DeleteDish(c *fiber.Ctx) error {
+	panic("unimplemented")
+}
+
+// DeleteRestaurant implements RestaurantController.
+func (ctrl *restaurantController) DeleteRestaurant(c *fiber.Ctx) error {
+	panic("unimplemented")
+}
+
+// EditDish implements RestaurantController.
+func (ctrl *restaurantController) EditDish(c *fiber.Ctx) error {
+	panic("unimplemented")
+}
+
+// EditRestaurant implements RestaurantController.
+func (ctrl *restaurantController) EditRestaurant(c *fiber.Ctx) error {
+	panic("unimplemented")
+}
+
 // FindRestaurantById implements RestaurantController.
 func (ctrl *restaurantController) FindRestaurantById(c *fiber.Ctx) error {
-	id, err := c.ParamsInt("id")
-	if err != nil {
-		return common.ErrorResponse(c, common.ErrArg{
-			IsError: true,
-			Code:    fiber.StatusBadRequest,
-			Message: err.Error(),
-			Data:    nil,
-		})
-	}
-
-	input := restaurantDto.RestaurantInput{RestaurantID: id}
-	output, err := ctrl.restaurantSvc.FindRestaurantById(input)
-	if err != nil {
-		return common.ErrorResponse(c, common.ErrArg{
-			IsError: true,
-			Code:    fiber.StatusBadRequest,
-			Message: err.Error(),
-			Data:    nil,
-		})
-	}
-
-	return common.SuccessResponse(c, common.SuccessArg{
-		Message: "Success",
-		Data:    output,
-	})
-
+	panic("unimplemented")
 }
 
-// SearchRestaurant implements RestaurantController.
-func (ctrl *restaurantController) SearchRestaurant(c *fiber.Ctx) error {
-	query := c.Query("query")
-	page, _ := strconv.Atoi(c.Query("page", "1"))
-	input := restaurantDto.SearchRestaurant{Query: query, Page: page}
-
-	output, err := ctrl.restaurantSvc.SearchRestaurantByName(input)
-	if err != nil {
-		return common.ErrorResponse(c, common.ErrArg{
-			IsError: true,
-			Code:    fiber.StatusBadRequest,
-			Message: err.Error(),
-			Data:    nil,
-		})
-	}
-	return common.SuccessResponse(c, common.SuccessArg{
-		Message: "Success",
-		Data:    output,
-	})
-}
-
-// GetAllCategories implements RestaurantController.
-func (ctrl *restaurantController) GetAllCategories(c *fiber.Ctx) error {
-	page, _ := strconv.Atoi(c.Query("page", "1"))
-	input := restaurantDto.RestaurantsInput{Page: page}
-	output, err := ctrl.restaurantSvc.AllRestaurants(input)
-	if err != nil {
-		return common.ErrorResponse(c, common.ErrArg{
-			IsError: true,
-			Code:    fiber.StatusBadRequest,
-			Message: err.Error(),
-			Data:    nil,
-		})
-	}
-	return common.SuccessResponse(c, common.SuccessArg{
-		Message: "Success",
-		Data:    output,
-	})
-}
-
-// GetAllRestaurant implements RestaurantController.
-func (ctrl *restaurantController) GetAllRestaurant(c *fiber.Ctx) error {
-	page, _ := strconv.Atoi(c.Query("page", "1"))
-	input := restaurantDto.RestaurantsInput{Page: page}
-	output, err := ctrl.restaurantSvc.AllRestaurants(input)
-	if err != nil {
-		return common.ErrorResponse(c, common.ErrArg{
-			IsError: true,
-			Code:    fiber.StatusBadRequest,
-			Message: err.Error(),
-			Data:    nil,
-		})
-	}
-	return common.SuccessResponse(c, common.SuccessArg{
-		Message: "Success",
-		Data:    output,
-	})
-}
-
-func (ctrl *restaurantController) DeleteRestaurant(c *fiber.Ctx) error {
-	id, err := c.ParamsInt("id")
-	if err != nil {
-		common.ErrorResponse(c, common.ErrArg{
-			IsError: true,
-			Code:    fiber.StatusBadRequest,
-			Message: err.Error(),
-			Data:    nil,
-		})
-	}
-
-	err = ctrl.restaurantSvc.DeleteRestaurant(id, c)
-	if err != nil {
-		common.ErrorResponse(c, common.ErrArg{
-			IsError: true,
-			Code:    fiber.StatusBadRequest,
-			Message: err.Error(),
-			Data:    nil,
-		})
-	}
-
-	return common.SuccessResponse(c, common.SuccessArg{
-		Message: "Success",
-		Data:    nil,
-	})
-
-}
-
-// UpdateRestaurant implements RestaurantController.
-func (ctrl *restaurantController) UpdateRestaurant(c *fiber.Ctx) error {
-	id, err := c.ParamsInt("id")
-	if err != nil {
-		common.ErrorResponse(c, common.ErrArg{
-			IsError: true,
-			Code:    fiber.StatusBadRequest,
-			Message: err.Error(),
-			Data:    nil,
-		})
-	}
-
-	var requestBody restaurantDto.UpdateRestaurant
-	if err := common.RequestParserAndValidate(c, &requestBody); err != nil {
-		return common.ErrorResponse(c, common.ErrArg{
-			IsError: true,
-			Code:    fiber.StatusBadRequest,
-			Message: err.Error(),
-			Data:    nil,
-		})
-	}
-
-	restaurant, err := ctrl.restaurantSvc.UpdateRestaurant(&requestBody, id, c)
-	if err != nil {
-		return common.ErrorResponse(c, common.ErrArg{
-			IsError: true,
-			Code:    fiber.StatusBadRequest,
-			Message: err.Error(),
-			Data:    nil,
-		})
-	}
-
-	return common.SuccessResponse(c, common.SuccessArg{
-		Message: "Success",
-		Data:    restaurant,
-	})
-}
-
-func (ctrl *restaurantController) CreateRestaurant(c *fiber.Ctx) error {
-	var requestBody restaurantDto.CreateRestaurant
-	if err := common.RequestParserAndValidate(c, &requestBody); err != nil {
-		return common.ErrorResponse(c, common.ErrArg{
-			IsError: true,
-			Code:    fiber.StatusBadRequest,
-			Message: err.Error(),
-			Data:    nil,
-		})
-	}
-
-	restaurant, err := ctrl.restaurantSvc.CreateRestaurant(&requestBody, c)
-	if err != nil {
-		return common.ErrorResponse(c, common.ErrArg{
-			IsError: true,
-			Code:    fiber.StatusBadRequest,
-			Message: err.Error(),
-			Data:    nil,
-		})
-	}
-
-	return common.SuccessResponse(c, common.SuccessArg{
-		Message: "Success",
-		Data:    restaurant,
-	})
-
+// SearchRestaurantByName implements RestaurantController.
+func (ctrl *restaurantController) SearchRestaurantByName(c *fiber.Ctx) error {
+	panic("unimplemented")
 }
 
 // Table implements RestaurantController.
 func (ctrl *restaurantController) Table() []app.Mapping {
 	v1 := "/api/v1/restaurant"
-	v2 := "/api/v1/category"
 
 	return []app.Mapping{
-		{Method: fiber.MethodGet, Path: v1 + "", Handler: ctrl.GetAllRestaurant},
-		{Method: fiber.MethodGet, Path: v1 + "/:id", Handler: ctrl.FindRestaurantById},
-		{Method: fiber.MethodGet, Path: v1 + "/search", Handler: ctrl.SearchRestaurant},
+		{Method: "GET", Path: v1 + "s", Handler: ctrl.AllRestaurants},
+		{Method: "GET", Path: v1 + "/:id", Handler: ctrl.FindRestaurantById},
+		{Method: "GET", Path: v1 + "/search", Handler: ctrl.SearchRestaurantByName},
+
 		{
-			Method:  fiber.MethodPost,
-			Path:    v1 + "",
+			Method:  "POST",
+			Path:    v1,
 			Handler: ctrl.CreateRestaurant,
 			Middlewares: []fiber.Handler{
 				middleware.AuthMiddleware(ctrl.cfg),
-				middleware.Role(middleware.AllowedRoles{
-					entity.RoleOwner,
-				}),
+				middleware.Role(middleware.AllowedRoles{entity.RoleOwner}),
 			},
 		},
 		{
-			Method:  fiber.MethodPut,
-			Path:    v1 + "/:id",
-			Handler: ctrl.UpdateRestaurant,
+			Method:  "POST",
+			Path:    v1 + "/:id/dish",
+			Handler: ctrl.CreateDish,
 			Middlewares: []fiber.Handler{
 				middleware.AuthMiddleware(ctrl.cfg),
-				middleware.Role(middleware.AllowedRoles{
-					entity.RoleOwner,
-				}),
+				middleware.Role(middleware.AllowedRoles{entity.RoleOwner}),
+			},
+		},
+
+		{
+			Method:  "PUT",
+			Path:    v1 + "/:id",
+			Handler: ctrl.EditRestaurant,
+			Middlewares: []fiber.Handler{
+				middleware.AuthMiddleware(ctrl.cfg),
+				middleware.Role(middleware.AllowedRoles{entity.RoleOwner}),
 			},
 		},
 		{
-			Method:  fiber.MethodDelete,
+			Method:  "PUT",
+			Path:    v1 + "/dish/:dishId",
+			Handler: ctrl.EditDish,
+			Middlewares: []fiber.Handler{
+				middleware.AuthMiddleware(ctrl.cfg),
+				middleware.Role(middleware.AllowedRoles{entity.RoleOwner}),
+			},
+		},
+
+		{
+			Method:  "DELETE",
 			Path:    v1 + "/:id",
 			Handler: ctrl.DeleteRestaurant,
 			Middlewares: []fiber.Handler{
 				middleware.AuthMiddleware(ctrl.cfg),
-				middleware.Role(middleware.AllowedRoles{
-					entity.RoleOwner,
-				}),
+				middleware.Role(middleware.AllowedRoles{entity.RoleOwner}),
 			},
 		},
-		{Method: fiber.MethodGet, Path: v2, Handler: ctrl.GetAllCategories},
+		{
+			Method:  "DELETE",
+			Path:    v1 + "/dish/:dishId",
+			Handler: ctrl.DeleteDish,
+			Middlewares: []fiber.Handler{
+				middleware.AuthMiddleware(ctrl.cfg),
+				middleware.Role(middleware.AllowedRoles{entity.RoleOwner}),
+			},
+		},
 	}
 }
 

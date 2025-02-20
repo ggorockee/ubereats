@@ -1,44 +1,43 @@
 package dto
 
-// CreateRestaurant는 레스토랑 생성 입력 DTO
-type CreateRestaurant struct {
-	Name         string `json:"name"`
-	CoverImg     string `json:"cover_img"`
-	Address      string `json:"address"`
-	CategoryName string `json:"category_name"`
+type CreateRestaurantInput struct {
+	Name         string `json:"name" validate:"required,min=5"`
+	CoverImg     string `json:"coverImg" validate:"required"`
+	Address      string `json:"address" validate:"required"`
+	CategoryName string `json:"categoryName" validate:"required"`
 }
 
-// UpdateRestaurant는 레스토랑 수정 입력 DTO
-type UpdateRestaurant struct {
-	Name         string `json:"name,omitempty"`
-	CoverImg     string `json:"cover_img,omitempty"`
+type EditRestaurantInput struct {
+	RestaurantID string `json:"restaurantId" validate:"required"`
+	Name         string `json:"name,omitempty" validate:"min=5"`
+	CoverImg     string `json:"coverImg,omitempty"`
 	Address      string `json:"address,omitempty"`
-	CategoryName string `json:"category_name,omitempty"`
+	CategoryName string `json:"categoryName,omitempty"`
 }
 
-// DeleteRestaurant는 레스토랑 삭제 입력 DTO
-type DeleteRestaurant struct {
-	RestaurantID int `json:"restaurant_id"`
+type DeleteRestaurantInput struct {
+	RestaurantID string `json:"restaurantId" validate:"required"`
 }
 
-// RestaurantInput는 특정 레스토랑 조회 입력 DTO
-type RestaurantInput struct {
-	RestaurantID int `json:"restaurant_id"`
-}
-
-// RestaurantsInput는 레스토랑 목록 조회 입력 DTO
 type RestaurantsInput struct {
-	Page int `json:"page"`
+	Page int `query:"page" validate:"required,min=1"`
 }
 
-// SearchRestaurant는 레스토랑 검색 입력 DTO
-type SearchRestaurant struct {
-	Query string `json:"query"`
-	Page  int    `json:"page"`
+type RestaurantInput struct {
+	RestaurantID string `json:"restaurantId" validate:"required"`
 }
 
-// CategoryInput는 카테고리 조회 입력 DTO
-type CategoryInput struct {
-	Slug string `json:"slug"`
-	Page int    `json:"page"`
+type SearchRestaurantInput struct {
+	Query string `query:"query" validate:"required"`
+	Page  int    `query:"page" validate:"required,min=1"`
+}
+
+type Restaurant struct {
+	ID       uint     `json:"id"`
+	Name     string   `json:"name"`
+	CoverImg string   `json:"coverImg"`
+	Address  string   `json:"address"`
+	Category Category `json:"category"`
+	OwnerID  uint     `json:"ownerId"`
+	Menu     []Dish   `json:"menu"`
 }

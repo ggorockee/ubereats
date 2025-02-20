@@ -1,26 +1,43 @@
 package response
 
-import "ubereats/app/core/entity"
+import (
+	"ubereats/app/core/entity"
 
-// BaseResponse는 기본 응답 구조
-type BaseResponse struct {
-	Ok    bool   `json:"ok"`
-	Error string `json:"error,omitempty"`
-}
+	restDto "ubereats/app/domain/restaurant/dto"
+)
 
 // CreateRestaurantResponse는 레스토랑 생성 응답 DTO
-type CreateRestaurantResponse struct {
+type CreateRestaurantOutput struct {
 	BaseResponse
 }
 
 // UpdateRestaurantResponse는 레스토랑 수정 응답 DTO
-type UpdateRestaurantResponse struct {
+type EditRestaurantOutput struct {
 	BaseResponse
 }
 
 // DeleteRestaurantResponse는 레스토랑 삭제 응답 DTO
-type DeleteRestaurantResponse struct {
+type DeleteRestaurantOutput struct {
 	BaseResponse
+}
+
+type RestaurantsOutput struct {
+	BaseResponse
+	Results      []restDto.Restaurant `json:"results,omitempty"`
+	TotalPages   int                  `json:"totalPages"`
+	TotalResults int                  `json:"totalResults"`
+}
+
+type RestaurantOutput struct {
+	BaseResponse
+	Restaurant *restDto.Restaurant `json:"restaurant,omitempty"`
+}
+
+type SearchRestaurantOutput struct {
+	BaseResponse
+	Restaurants  []restDto.Restaurant `json:"restaurants,omitempty"`
+	TotalResults int                  `json:"totalResults"`
+	TotalPages   int                  `json:"totalPages"`
 }
 
 // AllCategoriesResponse는 모든 카테고리 응답 DTO
@@ -61,6 +78,7 @@ type SearchRestaurantResponse struct {
 
 // CategoryWithCount는 카테고리와 레스토랑 수를 포함한 DTO
 type CategoryWithCount struct {
+	BaseResponse
 	ID              uint   `json:"id"`
 	CreatedAt       string `json:"created_at"`
 	UpdatedAt       string `json:"updated_at"`
