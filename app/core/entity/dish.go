@@ -24,6 +24,28 @@ type Dish struct {
 	Options      []DishOption `gorm:"type:json" json:"options,omitempty"`
 }
 
+type DishResponse struct {
+	CoreResponse
+	Name        string              `json:"name"`
+	Price       int                 `json:"price"`
+	Photo       string              `json:"photo,omitempty"`
+	Description string              `json:"description"`
+	Restaurant  *RestaurantResponse `json:"restaurant,omitempty"`
+	Options     []DishOption        `json:"options,omitempty"`
+}
+
+func (d *Dish) Serialize() DishResponse {
+	restaurantResponse := d.Restaurant.Serialize()
+	return DishResponse{
+		Name:        d.Name,
+		Price:       d.Price,
+		Photo:       d.Photo,
+		Description: d.Description,
+		Restaurant:  &restaurantResponse,
+		Options:     d.Options,
+	}
+}
+
 func (Dish) TableName() string {
 	return "dishes"
 }

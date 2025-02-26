@@ -33,11 +33,11 @@ type SearchRestaurantInput struct {
 }
 
 type Restaurant struct {
-	ID       uint     `json:"id"`
+	ID       int      `json:"id"`
 	Name     string   `json:"name"`
 	CoverImg string   `json:"coverImg"`
 	Address  string   `json:"address"`
 	Category Category `json:"category"`
-	OwnerID  uint     `json:"ownerId"`
+	OwnerID  int      `json:"ownerId"`
 	Menu     []Dish   `json:"menu"`
 }

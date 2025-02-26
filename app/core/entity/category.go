@@ -23,3 +23,23 @@ func (c *Category) Validate() error {
 	}
 	return nil
 }
+
+type CategoryResponse struct {
+	CoreResponse
+	Name        string               `json:"name,omitempty"`
+	CoverImg    string               `json:"cover_img,omitempty"`
+	Restaurants []RestaurantResponse `json:"restaurants,omitempty"`
+}
+
+func (c *Category) Serialize() CategoryResponse {
+	restaurants := make([]RestaurantResponse, len(c.Restaurants))
+	for i, restaurant := range c.Restaurants {
+		restaurants[i] = restaurant.Serialize()
+	}
+
+	return CategoryResponse{
+		Name:        c.Name,
+		CoverImg:    c.CoverImg,
+		Restaurants: restaurants,
+	}
+}

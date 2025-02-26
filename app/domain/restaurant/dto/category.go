@@ -5,7 +5,7 @@ type CategoryInput struct {
 }
 
 type Category struct {
-	ID       uint   `json:"id"`
+	ID       int    `json:"id"`
 	Name     string `json:"name"`
 	CoverImg string `json:"coverImg,omitempty"`
 }

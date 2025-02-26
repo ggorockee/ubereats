@@ -28,6 +28,27 @@ type User struct {
 	Restaurants []Restaurant `gorm:"foreignKey:OwnerID" json:"restaurants"` // 1:N 관계
 }
 
+type UserResponse struct {
+	CoreResponse
+	Email       string               `json:"email"`
+	Role        UserRole             `json:"role"`
+	Restaurants []RestaurantResponse `json:"restaurants"` // 1:N 관계
+}
+
+func (u *User) Serialize() UserResponse {
+	restaurants := make([]RestaurantResponse, len(u.Restaurants))
+
+	for i, resrestaurant := range u.Restaurants {
+		restaurants[i] = resrestaurant.Serialize()
+	}
+
+	return UserResponse{
+		Email:       u.Email,
+		Role:        u.Role,
+		Restaurants: restaurants,
+	}
+}
+
 func (User) TableName() string {
 	return "users"
 }

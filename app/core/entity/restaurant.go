@@ -16,6 +16,16 @@ type Restaurant struct {
 	Menu       []Dish    `gorm:"foreignKey:RestaurantID" json:"menu,omitempty"`
 }
 
+type RestaurantResponse struct {
+	CoreResponse
+	Name     string            `json:"name"`
+	CoverImg string            `json:"cover_img"`
+	Address  string            `json:"address"`
+	Category *CategoryResponse `json:"category,omitempty"` // @ManyToOne, nullab
+	Owner    UserResponse      `json:"owner"`              // @ManyToOne
+	Menu     []DishResponse    `json:"menu,omitempty"`
+}
+
 func (Restaurant) TableName() string {
 	return "restaurants"
 }
@@ -37,4 +47,17 @@ func (r *Restaurant) Validate() error {
 	}
 
 	return nil
+}
+
+func (r *Restaurant) Serialize() RestaurantResponse {
+	categoryResponse := r.Category.Serialize()
+	user := r.Owner.Serialize()
+	return RestaurantResponse{
+		Name:     r.Name,
+		CoverImg: r.CoverImg,
+		Address:  r.Address,
+		Category: &categoryResponse,
+		Owner:    user,
+		Menu:     r.Menu,
+	}
 }
