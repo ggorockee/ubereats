@@ -9,6 +9,6 @@ type CoreEntity struct {
 }
 
 type CoreResponse struct {
-	Ok      bool   `json:"ok,omitempty"`
+	Ok      bool   `json:"ok"`
 	Message string `json:"message,omitempty"`
 }

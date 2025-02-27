@@ -5,6 +5,7 @@ import (
 	"ubereats/config"
 
 	"ubereats/app/core/entity"
+	restaurantDto "ubereats/app/domain/restaurant/dto"
 	restaurantSvc "ubereats/app/domain/restaurant/service"
 	"ubereats/app/middleware"
 
@@ -41,7 +42,22 @@ func (ctrl *restaurantController) CreateDish(c *fiber.Ctx) error {
 
 // CreateRestaurant implements RestaurantController.
 func (ctrl *restaurantController) CreateRestaurant(c *fiber.Ctx) error {
-	panic("unimplemented")
+	var requestBody restaurantDto.CreateRestaurantInput
+
+	if err := c.BodyParser(&requestBody); err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(entity.CoreResponse{
+			Ok:      false,
+			Message: err.Error(),
+		})
+	}
+
+	restaurant, err := ctrl.restaurantSvc.CreateRestaurant(&requestBody, c)
+	if err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(restaurant)
+	}
+
+	return c.Status(fiber.StatusOK).JSON(restaurant)
+
 }
 
 // DeleteDish implements RestaurantController.

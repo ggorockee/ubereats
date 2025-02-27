@@ -5,11 +5,14 @@ import (
 
 	restDto "ubereats/app/domain/restaurant/dto"
 
+	restaurantDto "ubereats/app/domain/restaurant/dto"
+
+	"github.com/gofiber/fiber/v2"
 	"gorm.io/gorm"
 )
 
 type RestaurantRepository interface {
-	CreateRestaurant(restaurant *restDto.Restaurant) (*entity.Restaurant, error)
+	CreateRestaurant(input *restaurantDto.CreateRestaurantInput, c *fiber.Ctx) (*entity.Restaurant, error)
 	FindRestaurantByID(id int) (*entity.Restaurant, error)
 	FindAll(page int) (*[]entity.Restaurant, *int, error)
 	FindByName(query string, page int) (*[]entity.Restaurant, *int, error)
@@ -43,11 +46,17 @@ func (r *restaurantRepository) CreateDish(dish *restDto.Dish) (*entity.Dish, err
 }
 
 // CreateRestaurant implements RestaurantRepository.
-func (r *restaurantRepository) CreateRestaurant(restaurant *restDto.Restaurant) (*entity.Restaurant, error) {
+func (r *restaurantRepository) CreateRestaurant(input *restaurantDto.CreateRestaurantInput, c *fiber.Ctx) (*entity.Restaurant, error) {
+
 	entityRestaurant := entity.Restaurant{
-		Name:     restaurant.Name,
-		CoverImg: restaurant.CoverImg,
-		Address:  restaurant.Address,
+		Name:       input.Name,
+		CoverImg:   input.CoverImg,
+		Address:    input.Address,
+		CategoryID: 0,
+		Category:   &entity.Category{},
+		OwnerID:    0,
+		Owner:      entity.User{},
+		Menu:       []entity.Dish{},
 	}
 
 	// (TODO) 관계 설정

@@ -7,11 +7,12 @@ import (
 	restaurantRepo "ubereats/app/domain/restaurant/repository"
 	restaurantRes "ubereats/app/domain/restaurant/response"
 
+	"github.com/gofiber/fiber/v2"
 	"gorm.io/gorm"
 )
 
 type RestaurantService interface {
-	CreateRestaurant(ownerID int, input restaurantDto.CreateRestaurantInput) (*restaurantRes.CreateRestaurantOutput, error)
+	CreateRestaurant(input restaurantDto.CreateRestaurantInput, c *fiber.Ctx) (*restaurantRes.RestaurantOutput, error)
 	EditRestaurant(ownerID string, input restaurantDto.EditRestaurantInput) (*restaurantRes.EditRestaurantOutput, error)
 	DeleteRestaurant(ownerID string, input restaurantDto.DeleteRestaurantInput) (*restaurantRes.DeleteRestaurantOutput, error)
 	AllRestaurants(input restaurantDto.RestaurantsInput) (*restaurantRes.RestaurantsOutput, error)
@@ -91,8 +92,35 @@ func (s *restaurantService) CreateDish(ownerID string, input restaurantDto.Creat
 }
 
 // CreateRestaurant implements RestaurantService.
-func (s *restaurantService) CreateRestaurant(ownerID int, input restaurantDto.CreateRestaurantInput) (*restaurantRes.CreateRestaurantOutput, error) {
-	panic("unimplemented")
+func (s *restaurantService) CreateRestaurant(input *restaurantDto.CreateRestaurantInput, c *fiber.Ctx) (*entity.RestaurantResponse, error) {
+	var restaurant *entity.Restaurant
+	err := s.dbConn.Transaction(func(tx *gorm.DB) error {
+		restaurant, err = s.restaurantRepo.CreateRestaurant(input, c)
+		if err != nil {
+			return err
+		}
+		return nil
+	})
+	if err != nil {
+		return &entity.RestaurantResponse{
+			CoreResponse: entity.CoreResponse{
+				Ok:      false,
+				Message: err.Error(),
+			},
+		}, err
+	}
+
+	return &entity.RestaurantResponse{
+		CoreResponse: entity.CoreResponse{
+			Ok: true,
+		},
+		Name:     restaurant.Name,
+		CoverImg: restaurant.CoverImg,
+		Address:  restaurant.Address,
+		Category: restaurant.Serialize().Category,
+		Owner:    restaurant.Serialize().Owner,
+		Menu:     restaurant.Serialize().Menu,
+	}, nil
 }
 
 // DeleteDish implements RestaurantService.

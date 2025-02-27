@@ -52,12 +52,18 @@ func (r *Restaurant) Validate() error {
 func (r *Restaurant) Serialize() RestaurantResponse {
 	categoryResponse := r.Category.Serialize()
 	user := r.Owner.Serialize()
+
+	menu := make([]DishResponse, len(r.Menu))
+	for i, m := range r.Menu {
+		menu[i] = m.Serialize()
+	}
+
 	return RestaurantResponse{
 		Name:     r.Name,
 		CoverImg: r.CoverImg,
 		Address:  r.Address,
 		Category: &categoryResponse,
 		Owner:    user,
-		Menu:     r.Menu,
+		Menu:     menu,
 	}
 }
