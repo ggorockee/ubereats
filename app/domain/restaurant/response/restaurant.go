@@ -2,53 +2,65 @@ package response
 
 import (
 	"ubereats/app/core/entity"
-
-	restDto "ubereats/app/domain/restaurant/dto"
+	"ubereats/app/core/helper/response"
 )
+
+type Restaurant struct {
+	Name     string `json:"name"`
+	CoverImg string `json:"cover_img"`
+	Address  string `json:"address"`
+	//CategoryID int    `json:"category_id"` // 외래 키 (nullable)
+	//Category   *Category `json:"category,omitempty"` // @ManyToOne, nullable, onDelete: SET NULL
+	//OwnerID    int       `json:"owner_id"`                        // 외래 키 (User와 연결)
+	//Owner      User      `json:"owner"`                 // @ManyToOne
+	//Menu       []Dish    `json:"menu,omitempty"`
+}
 
 // CreateRestaurantResponse는 레스토랑 생성 응답 DTO
 type CreateRestaurantOutput struct {
-	BaseResponse
+	response.BaseResponse
+	*Restaurant `json:"restaurant,omitempty"`
 }
 
 // UpdateRestaurantResponse는 레스토랑 수정 응답 DTO
 type EditRestaurantOutput struct {
-	BaseResponse
+	response.BaseResponse
+	*Restaurant `json:"restaurant,omitempty"`
 }
 
 // DeleteRestaurantResponse는 레스토랑 삭제 응답 DTO
 type DeleteRestaurantOutput struct {
-	BaseResponse
+	response.BaseResponse
 }
 
 type RestaurantsOutput struct {
-	BaseResponse
-	Results      []restDto.Restaurant `json:"results,omitempty"`
-	TotalPages   int                  `json:"totalPages"`
-	TotalResults int                  `json:"totalResults"`
+	response.BaseResponse
+	Results      []Restaurant `json:"results,omitempty"`
+	TotalPages   int          `json:"totalPages"`
+	TotalResults int          `json:"totalResults"`
 }
 
 type RestaurantOutput struct {
-	BaseResponse
-	Restaurant *restDto.Restaurant `json:"restaurant,omitempty"`
+	response.BaseResponse
+	Restaurant *Restaurant `json:"restaurant,omitempty"`
 }
 
 type SearchRestaurantOutput struct {
-	BaseResponse
-	Restaurants  []restDto.Restaurant `json:"restaurants,omitempty"`
-	TotalResults int                  `json:"totalResults"`
-	TotalPages   int                  `json:"totalPages"`
+	response.BaseResponse
+	Restaurants  []Restaurant `json:"restaurants,omitempty"`
+	TotalResults int          `json:"totalResults"`
+	TotalPages   int          `json:"totalPages"`
 }
 
 // AllCategoriesResponse는 모든 카테고리 응답 DTO
 type AllCategoriesResponse struct {
-	BaseResponse
+	response.BaseResponse
 	Categories []entity.Category `json:"categories,omitempty"`
 }
 
 // CategoryResponse는 카테고리 조회 응답 DTO
 type CategoryResponse struct {
-	BaseResponse
+	response.BaseResponse
 	Restaurants []entity.Restaurant `json:"restaurants,omitempty"`
 	Category    *entity.Category    `json:"category,omitempty"`
 	TotalPages  int                 `json:"total_pages"`
@@ -56,7 +68,7 @@ type CategoryResponse struct {
 
 // RestaurantsResponse는 레스토랑 목록 응답 DTO
 type RestaurantsResponse struct {
-	BaseResponse
+	response.BaseResponse
 	Results      []entity.Restaurant `json:"results,omitempty"`
 	TotalPages   int                 `json:"total_pages"`
 	TotalResults int                 `json:"total_results"`
@@ -64,13 +76,13 @@ type RestaurantsResponse struct {
 
 // RestaurantResponse는 특정 레스토랑 응답 DTO
 type RestaurantResponse struct {
-	BaseResponse
+	response.BaseResponse
 	Restaurant *entity.Restaurant `json:"restaurant,omitempty"`
 }
 
 // SearchRestaurantResponse는 레스토랑 검색 응답 DTO
 type SearchRestaurantResponse struct {
-	BaseResponse
+	response.BaseResponse
 	Restaurants  []entity.Restaurant `json:"restaurants,omitempty"`
 	TotalPages   int                 `json:"total_pages"`
 	TotalResults int                 `json:"total_results"`
@@ -78,7 +90,7 @@ type SearchRestaurantResponse struct {
 
 // CategoryWithCount는 카테고리와 레스토랑 수를 포함한 DTO
 type CategoryWithCount struct {
-	BaseResponse
+	response.BaseResponse
 	ID              uint   `json:"id"`
 	CreatedAt       string `json:"created_at"`
 	UpdatedAt       string `json:"updated_at"`

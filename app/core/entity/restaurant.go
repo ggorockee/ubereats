@@ -2,6 +2,7 @@ package entity
 
 import (
 	"errors"
+	"ubereats/app/domain/restaurant/response"
 )
 
 type Restaurant struct {
@@ -14,16 +15,6 @@ type Restaurant struct {
 	OwnerID    int       `gorm:"not null" json:"owner_id"`                        // 외래 키 (User와 연결)
 	Owner      User      `gorm:"foreignKey:OwnerID" json:"owner"`                 // @ManyToOne
 	Menu       []Dish    `gorm:"foreignKey:RestaurantID" json:"menu,omitempty"`
-}
-
-type RestaurantResponse struct {
-	CoreResponse
-	Name     string            `json:"name"`
-	CoverImg string            `json:"cover_img"`
-	Address  string            `json:"address"`
-	Category *CategoryResponse `json:"category,omitempty"` // @ManyToOne, nullab
-	Owner    UserResponse      `json:"owner"`              // @ManyToOne
-	Menu     []DishResponse    `json:"menu,omitempty"`
 }
 
 func (Restaurant) TableName() string {
@@ -49,21 +40,20 @@ func (r *Restaurant) Validate() error {
 	return nil
 }
 
-func (r *Restaurant) Serialize() RestaurantResponse {
-	categoryResponse := r.Category.Serialize()
-	user := r.Owner.Serialize()
+func (r *Restaurant) Serialize() response.Restaurant {
+	//categoryResponse := r.Category.Serialize()
+	//user := r.Owner.Serialize()
 
-	menu := make([]DishResponse, len(r.Menu))
-	for i, m := range r.Menu {
-		menu[i] = m.Serialize()
-	}
+	//menu := make([]DishResponse, len(r.Menu))
+	//for i, m := range r.Menu {
+	//	menu[i] = m.Serialize()
+	//}
 
-	return RestaurantResponse{
-		Name:     r.Name,
-		CoverImg: r.CoverImg,
-		Address:  r.Address,
-		Category: &categoryResponse,
-		Owner:    user,
-		Menu:     menu,
+	return response.Restaurant{
+		CoreResponse: CoreResponse{},
+		Name:         "",
+		CoverImg:     "",
+		Address:      "",
+		CategoryID:   0,
 	}
 }

@@ -31,13 +31,3 @@ type SearchRestaurantInput struct {
 	Query string `query:"query" validate:"required"`
 	Page  int    `query:"page" validate:"required,min=1"`
 }
-
-type Restaurant struct {
-	ID       int      `json:"id"`
-	Name     string   `json:"name"`
-	CoverImg string   `json:"coverImg"`
-	Address  string   `json:"address"`
-	Category Category `json:"category"`
-	OwnerID  int      `json:"ownerId"`
-	Menu     []Dish   `json:"menu"`
-}
