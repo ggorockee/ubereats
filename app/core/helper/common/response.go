@@ -1,4 +1,4 @@
-package response
+package common
 
 type BaseResponse struct {
 	Ok      bool   `json:"ok"`

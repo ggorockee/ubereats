@@ -7,8 +7,3 @@ type CoreEntity struct {
 	CreatedAt time.Time `gorm:"autoCreateTime" json:"createdAt"`
 	UpdatedAt time.Time `gorm:"autoUpdateTime" json:"updatedAt"`
 }
-
-type CoreResponse struct {
-	Ok      bool   `json:"ok"`
-	Message string `json:"message,omitempty"`
-}
