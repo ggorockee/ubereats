@@ -5,17 +5,18 @@ import (
 
 	userDto "ubereats/app/domain/user/dto"
 	userRepo "ubereats/app/domain/user/repository"
+	userRes "ubereats/app/domain/user/response"
 
 	"github.com/gofiber/fiber/v2"
 	"gorm.io/gorm"
 )
 
 type UserService interface {
-	GetAllUser(context ...*fiber.Ctx) (*[]entity.User, error)
-	CreateAccount(input *userDto.CreateAccount, context ...*fiber.Ctx) (*entity.User, error)
-	Login(input *userDto.Login, context ...*fiber.Ctx) (string, error)
+	GetAllUser(context ...*fiber.Ctx) (*userRes.GetAllUserOutput, error)
+	CreateAccount(c *fiber.Ctx, input *userDto.CreateAccount) (*userRes.CreateAccountOutput, error)
+	Login(c *fiber.Ctx, input *userDto.Login) (*userRes.LoginOutput, error)
 	// UpdateUser(input *userDto.UpdateUser, id int, context ...*fiber.Ctx) (*entity.User, error)
-	Me(c *fiber.Ctx) (*entity.User, error)
+	Me(c *fiber.Ctx) (*userRes.MeOutput, error)
 }
 
 type userService struct {

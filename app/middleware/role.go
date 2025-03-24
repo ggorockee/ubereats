@@ -14,12 +14,11 @@ func Role(roles AllowedRoles) fiber.Handler {
 		// 인증된 사용자 가져오기
 		user, ok := c.Locals("request_user").(entity.User)
 		if !ok {
-			return common.ErrorResponse(c, common.ErrArg{
-				IsError: true,
-				Code:    fiber.StatusUnauthorized,
-				Message: "user not authenticated",
-				Data:    nil,
-			})
+			return c.Status(fiber.StatusUnauthorized).JSON(
+				common.BaseResponse{
+					Message: "user not authenticated",
+				},
+			)
 		}
 
 		for _, role := range roles {
@@ -37,11 +36,10 @@ func Role(roles AllowedRoles) fiber.Handler {
 			}
 		}
 
-		return common.ErrorResponse(c, common.ErrArg{
-			IsError: true,
-			Code:    fiber.StatusForbidden,
-			Message: "insufficient role permissions",
-			Data:    nil,
-		})
+		return c.Status(fiber.StatusForbidden).JSON(
+			common.BaseResponse{
+				Message: "insufficient role permissions",
+			},
+		)
 	}
 }

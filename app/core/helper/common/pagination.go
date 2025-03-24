@@ -5,7 +5,7 @@ type PaginationInput struct {
 }
 
 type PaginationOutput struct {
-	BaseResponse
+	CoreResponse
 	TotalPages   *int `json:"total_pages,omitempty"`
 	TotalResults *int `json:"total_results,omitempty"`
 }

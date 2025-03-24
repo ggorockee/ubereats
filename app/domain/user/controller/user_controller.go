@@ -1,11 +1,9 @@
 package controller
 
 import (
-	"fmt"
 	"ubereats/app"
 	"ubereats/app/core/helper/common"
 	userDto "ubereats/app/domain/user/dto"
-	userRes "ubereats/app/domain/user/response"
 	userSvc "ubereats/app/domain/user/service"
 	"ubereats/app/middleware"
 	"ubereats/config"
@@ -66,87 +64,63 @@ type userController struct {
 // 	})
 // }
 
-func (ctrl *userController) Me(c *fiber.Ctx) error {
-	user, err := ctrl.userSvc.Me(c)
-	if err != nil {
-		return common.ErrorResponse(c, common.ErrArg{
-			IsError: true,
-			Code:    fiber.StatusBadGateway,
-			Message: err.Error(),
-			Data:    nil,
-		})
-	}
+// func (ctrl *userController) Me(c *fiber.Ctx) error {
+// 	user, err := ctrl.userSvc.Me(c)
+// 	if err != nil {
+// 		return common.BaseResponse{
+// 			Message: err.Error(),
+// 		}
+// 	}
 
-	return common.SuccessResponse(c, common.SuccessArg{
-		Message: "Success",
-		Data:    userRes.GenUserRes(user),
-	})
+// 	return common.BaseResponse{
+// 		Message: err.Error(),
+// 	}
 
-}
+// }
 
 func (ctrl *userController) Login(c *fiber.Ctx) error {
 	var requestBody userDto.Login
-	if err := common.RequestParserAndValidate(c, &requestBody); err != nil {
-		return common.ErrorResponse(c, common.ErrArg{
-			IsError: true,
-			Code:    fiber.StatusBadGateway,
-			Message: err.Error(),
-			Data:    nil,
-		})
+	if err := c.BodyParser(&requestBody); err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(
+			common.CoreResponse{
+				Message: err.Error(),
+			},
+		)
 	}
 
-	token, err := ctrl.userSvc.Login(&requestBody, c)
+	if err := common.ValidateStruct(&requestBody, c); err != nil {
+		return err
+	}
+
+	output, err := ctrl.userSvc.Login(c, &requestBody)
 	if err != nil {
-		return common.ErrorResponse(c, common.ErrArg{
-			IsError: true,
-			Code:    fiber.StatusBadGateway,
-			Message: err.Error(),
-			Data:    nil,
-		})
+		return c.Status(fiber.StatusInternalServerError).JSON(output)
 	}
 
-	return common.SuccessResponse(c, common.SuccessArg{
-		Message: "Success",
-		Data:    token,
-	})
+	return c.Status(fiber.StatusOK).JSON(output)
 }
 
 func (ctrl *userController) CreateAccount(c *fiber.Ctx) error {
 	var requestBody userDto.CreateAccount
-	if err := common.RequestParserAndValidate(c, &requestBody); err != nil {
-		return common.ErrorResponse(c, common.ErrArg{
-			IsError: true,
-			Code:    fiber.StatusBadRequest,
-			Message: err.Error(),
-			Data:    nil,
-		})
+
+	if err := c.BodyParser(&requestBody); err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(
+			common.CoreResponse{
+				Message: err.Error(),
+			},
+		)
 	}
 
-	if !requestBody.Role.IsValid() {
-		return common.ErrorResponse(c, common.ErrArg{
-			IsError: true,
-			Code:    fiber.StatusBadRequest,
-			Message: fmt.Sprintf("Invalid role: %s", requestBody.Role),
-			Data:    nil,
-		})
+	if err := common.ValidateStruct(&requestBody, c); err != nil {
+		return err
 	}
 
-	user, err := ctrl.userSvc.CreateAccount(&requestBody, c)
+	output, err := ctrl.userSvc.CreateAccount(c, &requestBody)
 	if err != nil {
-		return common.ErrorResponse(c, common.ErrArg{
-			IsError: true,
-			Code:    fiber.StatusBadRequest,
-			Message: err.Error(),
-			Data:    nil,
-		})
+		return c.Status(fiber.StatusInternalServerError).JSON(output)
 	}
 
-	userResponse := userRes.GenUserRes(user)
-	return common.SuccessResponse(c, common.SuccessArg{
-		Message: "Success",
-		Data:    userResponse,
-	})
-
+	return c.Status(fiber.StatusOK).JSON(output)
 }
 
 // GetAll implements UserController.

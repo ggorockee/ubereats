@@ -13,14 +13,7 @@ type OwnerResponse struct {
 	Email string `json:"email"`
 }
 
-func GenUserRes(m *entity.User) UserResponse {
-	return UserResponse{
-		CoreEntity: entity.CoreEntity{
-			ID:        m.ID,
-			CreatedAt: m.CreatedAt,
-			UpdatedAt: m.UpdatedAt,
-		},
-		Email: m.Email,
-		Role:  m.Role,
-	}
-}
+type GetAllUserOutput struct{}
+type CreateAccountOutput struct{}
+type LoginOutput struct{}
+type MeOutput struct{}
