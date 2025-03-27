@@ -7,22 +7,22 @@ import (
 	"github.com/gofiber/fiber/v2"
 )
 
-type AllowedRoles []entity.UserRole
+type AllowedRoles []string
 
 func Role(roles AllowedRoles) fiber.Handler {
 	return func(c *fiber.Ctx) error {
 		// 인증된 사용자 가져오기
 		user, ok := c.Locals("request_user").(entity.User)
 		if !ok {
-			return c.Status(fiber.StatusUnauthorized).JSON(
-				common.BaseResponse{
+			return c.Status(fiber.StatusInternalServerError).JSON(
+				common.CoreResponse{
 					Message: "user not authenticated",
 				},
 			)
 		}
 
 		for _, role := range roles {
-			if role == entity.RoleAny {
+			if role == "any" {
 				// 모든 역할 허용
 				return c.Next()
 			}
@@ -37,7 +37,7 @@ func Role(roles AllowedRoles) fiber.Handler {
 		}
 
 		return c.Status(fiber.StatusForbidden).JSON(
-			common.BaseResponse{
+			common.CoreResponse{
 				Message: "insufficient role permissions",
 			},
 		)

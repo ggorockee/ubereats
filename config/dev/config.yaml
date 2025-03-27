@@ -10,5 +10,5 @@ infra:
     user: "root"
     password: "test123!@#"
     host: "localhost"
-    dbName: "test"
+    dbName: "ubereat-test-1"
     port: "3306"

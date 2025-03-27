@@ -1,0 +1,86 @@
+basePath: /api/v1
+definitions:
+  dto.LoginInput:
+    properties:
+      email:
+        type: string
+      password:
+        type: string
+    required:
+    - email
+    - password
+    type: object
+  dto.SignUpInput:
+    properties:
+      email:
+        type: string
+      password:
+        minLength: 8
+        type: string
+      password2:
+        type: string
+      role:
+        type: string
+    required:
+    - email
+    - password
+    - role
+    type: object
+info:
+  contact:
+    email: ggorockee@gmail.com
+    name: ggorockee
+  description: This is an API for Truloop Application
+  license:
+    name: Apache 2.0
+    url: http://www.apache.org/licenses/LICENSE-2.0.html
+  title: ubereats App
+  version: "1.0"
+paths:
+  /auth/login:
+    post:
+      consumes:
+      - application/json
+      description: 로그인
+      parameters:
+      - description: requestBody
+        in: body
+        name: requestBody
+        required: true
+        schema:
+          $ref: '#/definitions/dto.LoginInput'
+      produces:
+      - application/json
+      responses: {}
+      security:
+      - Bearer: []
+      summary: 로그인
+      tags:
+      - Auth
+  /auth/signup:
+    post:
+      consumes:
+      - application/json
+      description: 계정 생성
+      parameters:
+      - description: requestBody
+        in: body
+        name: requestBody
+        required: true
+        schema:
+          $ref: '#/definitions/dto.SignUpInput'
+      produces:
+      - application/json
+      responses: {}
+      security:
+      - Bearer: []
+      summary: 계정 생성
+      tags:
+      - Auth
+securityDefinitions:
+  Bearer:
+    description: Type "Bearer" followed by a space and JWT token.
+    in: header
+    name: Authorization
+    type: apiKey
+swagger: "2.0"

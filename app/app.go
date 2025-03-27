@@ -5,7 +5,10 @@ import (
 	"fmt"
 	"log"
 	"time"
+	"ubereats/app/middleware"
 	"ubereats/config"
+
+	_ "ubereats/docs"
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/cors"
@@ -63,6 +66,7 @@ func setMiddleware(app *fiber.App, cfg *config.Config, db *gorm.DB) *fiber.App {
 		c.Locals("db", db)
 		return c.Next()
 	})
+	app.Use(middleware.AuthMiddleware(cfg))
 	// app.Use(recover.New())
 	return app
 }
