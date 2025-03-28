@@ -46,3 +46,21 @@ func RequestParserAndValidate(c *fiber.Ctx, requestBody any) error {
 
 	return nil
 }
+
+func ParsingPath(c *fiber.Ctx, key string, defaultVal string) (string, error) {
+	value := c.Params(key, defaultVal)
+	if value == "" {
+		return "", fmt.Errorf("parsing path error")
+	}
+
+	return value, nil
+}
+
+func ParsingQuery(c *fiber.Ctx, key string, defaultVal string) (string, error) {
+	value := c.Query(key, defaultVal)
+	if value == "" {
+		return "", fmt.Errorf("parsing query error")
+	}
+
+	return value, nil
+}

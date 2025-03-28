@@ -37,7 +37,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "Auth"
+                    "Category"
                 ],
                 "summary": "로그인",
                 "parameters": [
@@ -47,7 +47,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/dto.LoginInput"
+                            "$ref": "#/definitions/dto.CreateCategoryInput"
                         }
                     }
                 ],
@@ -88,6 +88,17 @@ const docTemplate = `{
         }
     },
     "definitions": {
+        "dto.CreateCategoryInput": {
+            "type": "object",
+            "required": [
+                "name"
+            ],
+            "properties": {
+                "name": {
+                    "type": "string"
+                }
+            }
+        },
         "dto.LoginInput": {
             "type": "object",
             "required": [
@@ -122,9 +133,24 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "role": {
-                    "type": "string"
+                    "$ref": "#/definitions/entity.UserRole"
                 }
             }
+        },
+        "entity.UserRole": {
+            "type": "string",
+            "enum": [
+                "client",
+                "owner",
+                "delivery",
+                "any"
+            ],
+            "x-enum-varnames": [
+                "RoleClient",
+                "RoleOwner",
+                "RoleDelivery",
+                "RoleAny"
+            ]
         }
     },
     "securityDefinitions": {

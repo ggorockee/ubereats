@@ -7,7 +7,7 @@ import (
 	"github.com/gofiber/fiber/v2"
 )
 
-type AllowedRoles []string
+type AllowedRoles []entity.UserRole
 
 func Role(roles AllowedRoles) fiber.Handler {
 	return func(c *fiber.Ctx) error {
@@ -22,7 +22,7 @@ func Role(roles AllowedRoles) fiber.Handler {
 		}
 
 		for _, role := range roles {
-			if role == "any" {
+			if role == entity.RoleAny {
 				// 모든 역할 허용
 				return c.Next()
 			}

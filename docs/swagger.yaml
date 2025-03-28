@@ -1,5 +1,12 @@
 basePath: /api/v1
 definitions:
+  dto.CreateCategoryInput:
+    properties:
+      name:
+        type: string
+    required:
+    - name
+    type: object
   dto.LoginInput:
     properties:
       email:
@@ -20,12 +27,24 @@ definitions:
       password2:
         type: string
       role:
-        type: string
+        $ref: '#/definitions/entity.UserRole'
     required:
     - email
     - password
     - role
     type: object
+  entity.UserRole:
+    enum:
+    - client
+    - owner
+    - delivery
+    - any
+    type: string
+    x-enum-varnames:
+    - RoleClient
+    - RoleOwner
+    - RoleDelivery
+    - RoleAny
 info:
   contact:
     email: ggorockee@gmail.com
@@ -48,7 +67,7 @@ paths:
         name: requestBody
         required: true
         schema:
-          $ref: '#/definitions/dto.LoginInput'
+          $ref: '#/definitions/dto.CreateCategoryInput'
       produces:
       - application/json
       responses: {}
@@ -56,7 +75,7 @@ paths:
       - Bearer: []
       summary: 로그인
       tags:
-      - Auth
+      - Category
   /auth/signup:
     post:
       consumes:
