@@ -47,13 +47,7 @@ func RequestParserAndValidate(c *fiber.Ctx, requestBody any) error {
 	return nil
 }
 
-func ValidateStruct(input any, ctx ...*fiber.Ctx) error {
-	options := struct{ context *fiber.Ctx }{}
-
-	switch {
-	case len(ctx) > 0:
-		options.context = ctx[0]
-	}
+func ValidateStruct(input any) error {
 
 	validate := validator.New()
 
@@ -69,22 +63,6 @@ func ValidateStruct(input any, ctx ...*fiber.Ctx) error {
 			fl.Field().String() == "owner" ||
 			fl.Field().String() == "delivery"
 	})
-
-	if c := options.context; c != nil {
-		if err := validate.Struct(input); err != nil {
-			return c.Status(fiber.StatusBadRequest).JSON(
-				CoreResponse{
-					Message: err.Error(),
-				},
-			)
-		}
-
-		return c.Status(fiber.StatusOK).JSON(
-			CoreResponse{
-				Ok: true,
-			},
-		)
-	}
 
 	// context가 없음
 	return validate.Struct(input)

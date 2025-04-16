@@ -9,10 +9,10 @@ import (
 	"go.uber.org/fx"
 )
 
-var ControllerMoudle = fx.Module(
+var ControllerModule = fx.Module(
 	"Controller",
 	fx.Provide(
-		restaurantRepo.NewRestaurantRepository,
+		restaurantRepo.NewRestaurantRepo,
 		restaurantSvc.NewRestaurantService,
 		app.AsRoute(restaurantCtrl.NewRestaurantController),
 	),
