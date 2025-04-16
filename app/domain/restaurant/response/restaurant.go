@@ -2,6 +2,6 @@ package response
 
 import "ubereats/app/core/helper/common"
 
-type CreateCategoryOutput struct {
+type CreateRestaurantOut struct {
 	common.CoreResponse
 }
