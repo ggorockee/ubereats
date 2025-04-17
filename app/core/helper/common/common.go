@@ -13,7 +13,7 @@ func DecodeStructure(from any, to any) error {
 	config := mapstructure.DecoderConfig{
 		Result:           to,
 		WeaklyTypedInput: true,
-		TagName:          "json",
+		TagName:          "mapstructure",
 	}
 
 	decoder, err := mapstructure.NewDecoder(&config)

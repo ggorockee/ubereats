@@ -3,7 +3,7 @@ package main
 import (
 	"ubereats/app"
 	"ubereats/app/core/helper"
-	"ubereats/app/domain/restaurant"
+	"ubereats/app/domain/user"
 
 	"ubereats/config"
 
@@ -16,7 +16,8 @@ func main() {
 		config.Module,
 		helper.Module,
 
-		restaurant.ControllerModule,
+		user.ControllerModule,
+		// restaurant.ControllerModule,
 
 		fx.Provide(
 			app.NewFiber,

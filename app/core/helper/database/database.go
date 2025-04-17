@@ -34,9 +34,8 @@ func NewMysql(config *config.Config) *gorm.DB {
 	}
 
 	db.AutoMigrate(
-		new(entity.Restaurant),
+
 		new(entity.User),
-		new(entity.Category),
 	)
 
 	return db
