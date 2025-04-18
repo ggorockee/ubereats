@@ -3,6 +3,7 @@ package controller
 import (
 	"ubereats/app"
 	"ubereats/app/core/helper/common"
+	userDto "ubereats/app/domain/user/dto"
 	userSvc "ubereats/app/domain/user/service"
 	"ubereats/config"
 
@@ -12,6 +13,7 @@ import (
 type UserController interface {
 	Table() []app.Mapping
 	Hi(c *fiber.Ctx) error
+	CreateAccount(c *fiber.Ctx) error
 }
 
 type userController struct {
@@ -32,6 +34,38 @@ func (ctrl *userController) Hi(c *fiber.Ctx) error {
 		Ok:      true,
 		Message: "hi",
 	})
+}
+
+// CreateAccount
+// @Summary Auth
+// @Description Auth
+// @Tags Auth
+// @Accept json
+// @Produce json
+// @Param requestBody body dto.CreateAccountIn true "requestBody"
+// @Router /user/create [post]
+// @Security Bearer
+func (ctrl *userController) CreateAccount(c *fiber.Ctx) error {
+	var requestBody userDto.CreateAccountIn
+	if err := c.BodyParser(&requestBody); err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(common.CoreResponse{
+			Message: err.Error(),
+		})
+	}
+
+	if err := common.ValidateStruct(&requestBody); err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(common.CoreResponse{
+			Message: err.Error(),
+		})
+	}
+
+	output, err := ctrl.userService.CreateAccount(c, &requestBody)
+	if err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(output)
+	}
+
+	return c.Status(fiber.StatusOK).JSON(output)
+
 }
 
 func (ctrl *userController) Table() []app.Mapping {
