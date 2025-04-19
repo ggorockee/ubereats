@@ -69,12 +69,17 @@ func (ctrl *userController) CreateAccount(c *fiber.Ctx) error {
 }
 
 func (ctrl *userController) Table() []app.Mapping {
-	v1 := "/api/v1/hi"
+	v1 := "/api/v1"
 	return []app.Mapping{
 		{
 			Method:  fiber.MethodGet,
-			Path:    v1 + "",
+			Path:    v1 + "/hi",
 			Handler: ctrl.Hi,
+		},
+		{
+			Method:  fiber.MethodPost,
+			Path:    v1 + "/user/create",
+			Handler: ctrl.CreateAccount,
 		},
 	}
 }
