@@ -13,11 +13,40 @@ import (
 
 type UserService interface {
 	CreateAccount(c *fiber.Ctx, inputParam *userDto.CreateAccountIn) (*userResp.CreateAccountOut, error)
+	Login(c *fiber.Ctx, inputParam *userDto.LoginIn) (*userResp.LoginOut, error)
 }
 
 type userService struct {
 	dbConn   *gorm.DB
 	userRepo userRepo.UserRepository
+}
+
+// Login implements UserService.
+func (s *userService) Login(c *fiber.Ctx, inputParam *userDto.LoginIn) (*userResp.LoginOut, error) {
+	var token string
+	err := s.dbConn.Transaction(func(tx *gorm.DB) error {
+		var err error
+		token, err = s.userRepo.Login(c, inputParam)
+		if err != nil {
+			return err
+		}
+		return nil
+	})
+
+	if err != nil {
+		return &userResp.LoginOut{
+			CoreResponse: common.CoreResponse{
+				Message: err.Error(),
+			},
+		}, err
+	}
+
+	return &userResp.LoginOut{
+		CoreResponse: common.CoreResponse{
+			Ok:   true,
+			Data: token,
+		},
+	}, nil
 }
 
 // CreateAccount implements UserService.

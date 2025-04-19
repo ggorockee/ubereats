@@ -14,11 +14,43 @@ type UserController interface {
 	Table() []app.Mapping
 	Hi(c *fiber.Ctx) error
 	CreateAccount(c *fiber.Ctx) error
+	Login(c *fiber.Ctx) error
 }
 
 type userController struct {
 	userService userSvc.UserService
 	cfg         *config.Config
+}
+
+// Login
+// @Summary Auth
+// @Description Auth
+// @Tags Auth
+// @Accept json
+// @Produce json
+// @Param requestBody body dto.LoginIn true "requestBody"
+// @Router /user/login [post]
+// @Security Bearer
+func (ctrl *userController) Login(c *fiber.Ctx) error {
+	var requestBody userDto.LoginIn
+	if err := c.BodyParser(&requestBody); err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(common.CoreResponse{
+			Message: err.Error(),
+		})
+	}
+
+	if err := common.ValidateStruct(&requestBody); err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(common.CoreResponse{
+			Message: err.Error(),
+		})
+	}
+
+	output, err := ctrl.userService.Login(c, &requestBody)
+	if err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(output)
+	}
+
+	return c.Status(fiber.StatusOK).JSON(output)
 }
 
 // Hi

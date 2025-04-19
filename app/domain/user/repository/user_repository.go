@@ -5,14 +5,17 @@ import (
 	"ubereats/app/core/entity"
 	"ubereats/app/core/helper/common"
 	userDto "ubereats/app/domain/user/dto"
+	"ubereats/config"
 
 	"github.com/gofiber/fiber/v2"
+	"github.com/golang-jwt/jwt/v5"
 	"golang.org/x/crypto/bcrypt"
 	"gorm.io/gorm"
 )
 
 type UserRepository interface {
 	CreateAccount(c *fiber.Ctx, inputParam *userDto.CreateAccountIn) (*entity.User, error)
+	Login(c *fiber.Ctx, inputParam *userDto.LoginIn) (string, error)
 	FineOne(key, value string) (*entity.User, error)
 	hashPassword(password string) (string, error)
 	CheckPasswordHash(password, hash string) bool
@@ -20,6 +23,34 @@ type UserRepository interface {
 
 type userRepository struct {
 	dbConn *gorm.DB
+	cfg    *config.Config
+}
+
+// Login implements UserRepository.
+func (r *userRepository) Login(c *fiber.Ctx, inputParam *userDto.LoginIn) (string, error) {
+	email := inputParam.Email
+	password := inputParam.Password
+
+	existingUser, err := r.FineOne("email", email)
+	if err != nil {
+		return "", err
+	}
+
+	if !r.CheckPasswordHash(password, existingUser.Password) {
+		return "", fmt.Errorf("%s", "password is incorrect")
+	}
+
+	token := jwt.New(jwt.SigningMethodHS256)
+	claims := token.Claims.(jwt.MapClaims)
+
+	claims["user_id"] = existingUser.ID
+	t, err := token.SignedString([]byte(r.cfg.Secret.Jwt))
+	if err != nil {
+		return "", err
+	}
+
+	c.Set("Authorization", "Bearer "+t)
+	return t, nil
 }
 
 // CheckPasswordHash implements UserRepository.
@@ -84,8 +115,12 @@ func (r *userRepository) FineOne(key, value string) (*entity.User, error) {
 	return &obj, nil
 }
 
-func NewUserRepository(dbConn *gorm.DB) UserRepository {
+func NewUserRepository(
+	dbConn *gorm.DB,
+	cfg *config.Config,
+) UserRepository {
 	return &userRepository{
 		dbConn: dbConn,
+		cfg:    cfg,
 	}
 }
