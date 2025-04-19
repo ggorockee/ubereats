@@ -3,9 +3,11 @@ package controller
 import (
 	"log"
 	"ubereats/app"
+	"ubereats/app/core/entity"
 	"ubereats/app/core/helper/common"
 	restaurantDto "ubereats/app/domain/restaurant/dto"
 	restaurantSvc "ubereats/app/domain/restaurant/service"
+	"ubereats/app/middleware"
 	"ubereats/config"
 
 	"github.com/gofiber/fiber/v2"
@@ -21,8 +23,17 @@ type restaurantController struct {
 	cfg               *config.Config
 }
 
+// CreateRestaurant
+// @Summary Restaurant
+// @Description Restaurant
+// @Tags Restaurant
+// @Accept json
+// @Produce json
+// @Param requestBody body dto.CreateRestaurantIn true "requestBody"
+// @Router /restaurant [post]
+// @Security Bearer
 func (ctrl *restaurantController) CreateRestaurant(c *fiber.Ctx) error {
-	var inputParam restaurantDto.CreateRestaurantDto
+	var inputParam restaurantDto.CreateRestaurantIn
 	if err := c.BodyParser(&inputParam); err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(common.CoreResponse{
 			Message: err.Error(),
@@ -49,7 +60,12 @@ func (ctrl *restaurantController) Table() []app.Mapping {
 
 	return []app.Mapping{
 		{
-			Method: fiber.MethodGet,
+			Method:  fiber.MethodPost,
+			Path:    "",
+			Handler: ctrl.CreateRestaurant,
+			Middlewares: []fiber.Handler{
+				middleware.RoleGuard(entity.RoleClient),
+			},
 		},
 	}
 }

@@ -20,6 +20,7 @@ func ValidateStruct(input any) error {
 			fl.Field().String() == "owner" ||
 			fl.Field().String() == "delivery" ||
 			fl.Field().String() == "any" ||
+			fl.Field().String() == "admin" ||
 			fl.Field().String() == ""
 
 	})

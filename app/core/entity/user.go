@@ -7,6 +7,8 @@ type User struct {
 	Password   string   `gorm:"type:varchar(255);not null" json:"-" mapstructure:"password"`
 	Role       UserRole `gorm:"type:varchar(20);not null;default:'client'" json:"role" validate:"role" mapstructure:"role"`
 	// Restaurants []Restaurant `gorm:"foreignKey:OwnerID" json:"restaurants"` // 1:N 관계
+
+	Restaurants []Restaurant `gorm:"foreignKey:OwnerRefer" json:"restaurants,omitempty" mapstructure:"restaurants"`
 }
 
 func (m *User) UpdateDelProperty() {

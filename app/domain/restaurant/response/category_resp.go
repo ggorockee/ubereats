@@ -2,14 +2,14 @@ package response
 
 import "ubereats/app/core/helper/common"
 
-type CreateRestaurantOut struct {
+type CreateCategoryOut struct {
 	common.CoreResponse
 }
 
-type EditRestaurantOut struct {
+type GetAllCategoryOut struct {
 	common.CoreResponse
 }
 
-type DeleteRestaurantOut struct {
+type GetCategoryOut struct {
 	common.CoreResponse
 }

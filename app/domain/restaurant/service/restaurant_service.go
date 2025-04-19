@@ -12,7 +12,7 @@ import (
 )
 
 type RestaurantService interface {
-	CreateRestaurant(c *fiber.Ctx, inputParm *restaurantDto.CreateRestaurantDto) (*restaurantResp.CreateRestaurantOut, error)
+	CreateRestaurant(c *fiber.Ctx, inputParm *restaurantDto.CreateRestaurantIn) (*restaurantResp.CreateRestaurantOut, error)
 }
 
 type restaurantService struct {
@@ -21,7 +21,7 @@ type restaurantService struct {
 }
 
 // CreateRestaurant implements RestaurantService.
-func (s *restaurantService) CreateRestaurant(c *fiber.Ctx, inputParm *restaurantDto.CreateRestaurantDto) (*restaurantResp.CreateRestaurantOut, error) {
+func (s *restaurantService) CreateRestaurant(c *fiber.Ctx, inputParm *restaurantDto.CreateRestaurantIn) (*restaurantResp.CreateRestaurantOut, error) {
 	var restaurant *entity.Restaurant
 	// var err error
 	err := s.dbConn.Transaction(func(tx *gorm.DB) error {

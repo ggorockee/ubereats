@@ -7,4 +7,5 @@ const (
 	RoleOwner    UserRole = "owner"
 	RoleDelivery UserRole = "delivery"
 	RoleAny      UserRole = "any"
+	RoleAdmin    UserRole = "admin"
 )

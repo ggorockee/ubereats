@@ -7,9 +7,7 @@ import (
 	"github.com/gofiber/fiber/v2"
 )
 
-type AllowedRoles []entity.UserRole
-
-func RoleGuard(roles AllowedRoles) fiber.Handler {
+func RoleGuard(roles ...entity.UserRole) fiber.Handler {
 	return func(c *fiber.Ctx) error {
 		user, ok := c.Locals("request_user").(entity.User)
 		if !ok {
