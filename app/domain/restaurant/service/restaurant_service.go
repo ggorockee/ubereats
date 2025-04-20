@@ -13,11 +13,31 @@ import (
 
 type RestaurantService interface {
 	CreateRestaurant(c *fiber.Ctx, inputParm *restaurantDto.CreateRestaurantIn) (*restaurantResp.CreateRestaurantOut, error)
+	GetAllRestaurant(c *fiber.Ctx) (*restaurantResp.GetAllRestaurantOut, error)
 }
 
 type restaurantService struct {
 	restaurantRepo restaurantRepo.RestaurantRepo
 	dbConn         *gorm.DB
+}
+
+// GetAllRestaurant implements RestaurantService.
+func (s *restaurantService) GetAllRestaurant(c *fiber.Ctx) (*restaurantResp.GetAllRestaurantOut, error) {
+	restaurants, err := s.restaurantRepo.GetAllRestaurant(c)
+	if err != nil {
+		return &restaurantResp.GetAllRestaurantOut{
+			CoreResponse: common.CoreResponse{
+				Message: err.Error(),
+			},
+		}, err
+	}
+
+	return &restaurantResp.GetAllRestaurantOut{
+		CoreResponse: common.CoreResponse{
+			Ok:   true,
+			Data: restaurants,
+		},
+	}, nil
 }
 
 // CreateRestaurant implements RestaurantService.

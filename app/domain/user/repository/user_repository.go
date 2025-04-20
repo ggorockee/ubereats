@@ -29,6 +29,7 @@ type userRepository struct {
 
 // GetAuthenticateUser implements UserRepository.
 func (r *userRepository) GetAuthenticateUser(c *fiber.Ctx) (*entity.User, error) {
+
 	user, ok := c.Locals("request_user").(entity.User)
 	if !ok {
 		return nil, fmt.Errorf("%s", "user is not authenticated")

@@ -1,7 +1,6 @@
 package controller
 
 import (
-	"log"
 	"ubereats/app"
 	"ubereats/app/core/entity"
 	"ubereats/app/core/helper/common"
@@ -16,11 +15,29 @@ import (
 type RestaurantController interface {
 	Table() []app.Mapping
 	CreateRestaurant(c *fiber.Ctx) error
+	GetAllRestaurant(c *fiber.Ctx) error
 }
 
 type restaurantController struct {
 	restaurantService restaurantSvc.RestaurantService
 	cfg               *config.Config
+}
+
+// GetAllRestaurant
+// @Summary GetAllRestaurant
+// @Description GetAllRestaurant
+// @Tags Restaurant
+// @Accept json
+// @Produce json
+// @Router /restaurant [get]
+// @Security Bearer
+func (ctrl *restaurantController) GetAllRestaurant(c *fiber.Ctx) error {
+	output, err := ctrl.restaurantService.GetAllRestaurant(c)
+	if err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(output)
+	}
+
+	return c.Status(fiber.StatusOK).JSON(output)
 }
 
 // CreateRestaurant
@@ -34,6 +51,7 @@ type restaurantController struct {
 // @Security Bearer
 func (ctrl *restaurantController) CreateRestaurant(c *fiber.Ctx) error {
 	var inputParam restaurantDto.CreateRestaurantIn
+
 	if err := c.BodyParser(&inputParam); err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(common.CoreResponse{
 			Message: err.Error(),
@@ -56,16 +74,23 @@ func (ctrl *restaurantController) CreateRestaurant(c *fiber.Ctx) error {
 
 func (ctrl *restaurantController) Table() []app.Mapping {
 	v1 := "/api/v1/restaurant"
-	log.Println(v1)
 
 	return []app.Mapping{
 		{
 			Method:  fiber.MethodPost,
-			Path:    "",
+			Path:    v1 + "",
 			Handler: ctrl.CreateRestaurant,
 			Middlewares: []fiber.Handler{
-				middleware.RoleGuard(entity.RoleClient),
+				middleware.RoleGuard(entity.RoleOwner),
 			},
+		},
+		{
+			Method:  fiber.MethodGet,
+			Path:    v1 + "",
+			Handler: ctrl.GetAllRestaurant,
+			// Middlewares: []fiber.Handler{
+			// 	// middleware.RoleGuard(entity.RoleOwner),
+			// },
 		},
 	}
 }

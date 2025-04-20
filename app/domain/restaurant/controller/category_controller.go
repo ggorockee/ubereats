@@ -112,7 +112,7 @@ func (ctrl *categoryController) Table() []app.Mapping {
 			Handler: ctrl.CreateCategory,
 			Middlewares: []fiber.Handler{
 				middleware.JWtProtected(ctrl.cfg),
-				middleware.RoleGuard(entity.RoleAdmin),
+				middleware.RoleGuard(entity.RoleOwner),
 			},
 		},
 		{

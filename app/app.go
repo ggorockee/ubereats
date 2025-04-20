@@ -55,6 +55,13 @@ func initializeFiber(cfg *config.Config, db *gorm.DB) *fiber.App {
 	})
 	app.Get("/api/v1/docs/*", swagger.HandlerDefault)
 
+	app.Get("/api/v1/debug/routes", func(c *fiber.Ctx) error {
+		for _, route := range app.GetRoutes() {
+			fmt.Printf("%s %s\n", route.Method, route.Path)
+		}
+		return nil
+	})
+
 	app = setMiddleware(app, cfg, db)
 
 	return app

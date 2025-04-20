@@ -1,6 +1,9 @@
 package middleware
 
 import (
+	"fmt"
+	"log"
+	"slices"
 	"ubereats/app/core/entity"
 	"ubereats/app/core/helper/common"
 
@@ -16,22 +19,32 @@ func RoleGuard(roles ...entity.UserRole) fiber.Handler {
 			})
 		}
 
-		for _, role := range roles {
-			if role == entity.RoleAny {
-				return c.Next()
-			}
+		// 0. 관리자 처리
+		if user.Role == entity.RoleAdmin {
+			return c.Next()
 		}
 
-		// 사용자 역할과 허용된 역할 비교
-		userRole := user.Role
-		for _, allowedRole := range roles {
-			if userRole == allowedRole {
-				return c.Next()
-			}
+		// 1. RoleAny 처리
+		if slices.Contains(roles, entity.RoleAny) {
+			return c.Next()
 		}
 
+		// 2. 역할 일치 확인
+		if slices.Contains(roles, user.Role) {
+			log.Printf("✅ 허용 역할: %v, 사용자 역할: %s", roles, user.Role)
+			return c.Next()
+		}
+
+		// 3. 권한 없음 (핵심 수정 부분)
+		log.Printf("⛔ 거부됨 - 허용 역할: %v, 사용자 역할: %s", roles, user.Role)
 		return c.Status(fiber.StatusForbidden).JSON(common.CoreResponse{
-			Message: "insufficient role permissions",
+			Message: fmt.Sprintf(
+				"허용 역할: %v, 현재 역할: %s",
+				roles,
+				user.Role,
+			),
 		})
+
 	}
+
 }

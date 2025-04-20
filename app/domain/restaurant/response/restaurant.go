@@ -13,3 +13,7 @@ type EditRestaurantOut struct {
 type DeleteRestaurantOut struct {
 	common.CoreResponse
 }
+
+type GetAllRestaurantOut struct {
+	common.CoreResponse
+}

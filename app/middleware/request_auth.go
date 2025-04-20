@@ -14,77 +14,49 @@ import (
 )
 
 func authenticateUser(c *fiber.Ctx, authHeader string, cfg *config.Config) error {
+	// 1. 헤더 포맷 검증
 	parts := strings.Split(authHeader, " ")
 	if len(parts) != 2 || parts[0] != "Bearer" {
-
-		return c.Status(fiber.StatusUnauthorized).JSON(
-			common.CoreResponse{
-				Message: "Invalid Authorization header format",
-			},
-		)
-
+		return fiber.NewError(fiber.StatusBadRequest, "Invalid Authorization header format")
 	}
 
+	// 2. 토큰 검증
 	tokenString := parts[1]
-
-	// 토큰 검증
 	token, err := validateToken(tokenString, cfg)
 	if err != nil {
-
-		return c.Status(fiber.StatusUnauthorized).JSON(
-			common.CoreResponse{
-				Message: err.Error(),
-			},
-		)
-
+		return fiber.NewError(fiber.StatusUnauthorized, "Token validation failed: "+err.Error())
 	}
 
-	// Claims 처리
+	// 3. 클레임 추출
 	claims, ok := token.Claims.(jwt.MapClaims)
 	if !ok {
-
-		return c.Status(fiber.StatusUnauthorized).JSON(
-			common.CoreResponse{
-				Message: "Invalid token claims",
-			},
-		)
-
+		return fiber.NewError(fiber.StatusUnauthorized, "Invalid token claims structure")
 	}
 
-	userIdFloat, ok := claims["user_id"].(float64)
+	// 4. 사용자 ID 추출
+	userID, ok := claims["user_id"].(float64)
 	if !ok {
-
-		return c.Status(fiber.StatusUnauthorized).JSON(
-			common.CoreResponse{
-				Message: "Invalid user_id in token",
-			},
-		)
+		return fiber.NewError(fiber.StatusUnauthorized, "Invalid user_id in token")
 	}
-	userId := int(userIdFloat)
 
-	// DB 조회
+	// 5. DB에서 사용자 조회
 	db, ok := c.Locals("db").(*gorm.DB)
 	if !ok {
-		return c.Status(fiber.StatusInternalServerError).JSON(
-			common.CoreResponse{
-				Message: "Database connection not available",
-			},
-		)
-
+		return fiber.NewError(fiber.StatusInternalServerError, "Database connection not available")
 	}
 
 	var user entity.User
-	if err := db.Where("id = ?", userId).First(&user).Error; err != nil {
-		return c.Status(fiber.StatusInternalServerError).JSON(
-			common.CoreResponse{
-				Message: "User not found",
-			},
-		)
+	if err := db.First(&user, int(userID)).Error; err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return fiber.NewError(fiber.StatusUnauthorized, "User not found")
+		}
+		return fiber.NewError(fiber.StatusInternalServerError, "Database query error")
 	}
 
+	// 6. 컨텍스트에 사용자 정보 저장
 	c.Locals("is_authenticated", true)
 	c.Locals("request_user", user)
-	return c.Next()
+	return nil
 }
 
 func AuthMiddleware(cfg *config.Config) fiber.Handler {
@@ -95,9 +67,20 @@ func AuthMiddleware(cfg *config.Config) fiber.Handler {
 		// Authorization 헤더 확인
 		authHeader := c.Get("Authorization", "")
 
-		if authHeader != "" {
-			if err := authenticateUser(c, authHeader, cfg); err != nil {
-				return err
+		if authHeader == "" {
+			return c.Next() // 인증 없이 계속 진행
+		}
+
+		if err := authenticateUser(c, authHeader, cfg); err != nil {
+			switch e := err.(type) {
+			case *fiber.Error:
+				return c.Status(e.Code).JSON(common.CoreResponse{
+					Message: err.Error(),
+				})
+			default:
+				c.Status(fiber.StatusInternalServerError).JSON(common.CoreResponse{
+					Message: "internal server error",
+				})
 			}
 		}
 
