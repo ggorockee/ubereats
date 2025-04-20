@@ -14,11 +14,40 @@ import (
 type RestaurantService interface {
 	CreateRestaurant(c *fiber.Ctx, inputParm *restaurantDto.CreateRestaurantIn) (*restaurantResp.CreateRestaurantOut, error)
 	GetAllRestaurant(c *fiber.Ctx) (*restaurantResp.GetAllRestaurantOut, error)
+	EditRestaurant(c *fiber.Ctx, id uint, inputParam *restaurantDto.EditRestaurantIn) (*restaurantResp.EditRestaurantOut, error)
 }
 
 type restaurantService struct {
 	restaurantRepo restaurantRepo.RestaurantRepo
 	dbConn         *gorm.DB
+}
+
+// EditRestaurant implements RestaurantService.
+func (s *restaurantService) EditRestaurant(c *fiber.Ctx, id uint, inputParam *restaurantDto.EditRestaurantIn) (*restaurantResp.EditRestaurantOut, error) {
+	var restaurant *entity.Restaurant
+	err := s.dbConn.Transaction(func(tx *gorm.DB) error {
+		var err error
+		restaurant, err = s.restaurantRepo.EditRestaurant(c, id, inputParam)
+		if err != nil {
+			return err
+		}
+		return nil
+	})
+
+	if err != nil {
+		return &restaurantResp.EditRestaurantOut{
+			CoreResponse: common.CoreResponse{
+				Message: err.Error(),
+			},
+		}, err
+	}
+
+	return &restaurantResp.EditRestaurantOut{
+		CoreResponse: common.CoreResponse{
+			Ok:   true,
+			Data: restaurant,
+		},
+	}, nil
 }
 
 // GetAllRestaurant implements RestaurantService.

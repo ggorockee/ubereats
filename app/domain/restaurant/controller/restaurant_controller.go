@@ -1,6 +1,7 @@
 package controller
 
 import (
+	"log"
 	"ubereats/app"
 	"ubereats/app/core/entity"
 	"ubereats/app/core/helper/common"
@@ -15,12 +16,54 @@ import (
 type RestaurantController interface {
 	Table() []app.Mapping
 	CreateRestaurant(c *fiber.Ctx) error
+	EditRestaurant(c *fiber.Ctx) error
 	GetAllRestaurant(c *fiber.Ctx) error
 }
 
 type restaurantController struct {
 	restaurantService restaurantSvc.RestaurantService
 	cfg               *config.Config
+}
+
+// EditRestaurant
+// @Summary EditRestaurant
+// @Description EditRestaurant
+// @Tags Restaurant
+// @Accept json
+// @Produce json
+// @Param id path int true "id"
+// @Param requestBody body dto.EditRestaurantIn true "requestBody"
+// @Router /restaurant/{id} [put]
+// @Security Bearer
+func (ctrl *restaurantController) EditRestaurant(c *fiber.Ctx) error {
+	var requestBody restaurantDto.EditRestaurantIn
+	if err := c.BodyParser(&requestBody); err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(common.CoreResponse{
+			Message: err.Error(),
+		})
+	}
+
+	if err := common.ValidateStruct(&requestBody); err != nil {
+		log.Println("너니?")
+		return c.Status(fiber.StatusInternalServerError).JSON(common.CoreResponse{
+			Message: err.Error(),
+		})
+	}
+
+	restaurantId, err := c.ParamsInt("id")
+	if err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(common.CoreResponse{
+			Message: err.Error(),
+		})
+	}
+
+	output, err := ctrl.restaurantService.EditRestaurant(c, uint(restaurantId), &requestBody)
+
+	if err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(output)
+	}
+
+	return c.Status(fiber.StatusOK).JSON(output)
 }
 
 // GetAllRestaurant
@@ -81,6 +124,7 @@ func (ctrl *restaurantController) Table() []app.Mapping {
 			Path:    v1 + "",
 			Handler: ctrl.CreateRestaurant,
 			Middlewares: []fiber.Handler{
+				middleware.JWtProtected(ctrl.cfg),
 				middleware.RoleGuard(entity.RoleOwner),
 			},
 		},
@@ -91,6 +135,15 @@ func (ctrl *restaurantController) Table() []app.Mapping {
 			// Middlewares: []fiber.Handler{
 			// 	// middleware.RoleGuard(entity.RoleOwner),
 			// },
+		},
+		{
+			Method:  fiber.MethodPut,
+			Path:    v1 + "/:id",
+			Handler: ctrl.EditRestaurant,
+			Middlewares: []fiber.Handler{
+				middleware.JWtProtected(ctrl.cfg),
+				middleware.RoleGuard(entity.RoleOwner),
+			},
 		},
 	}
 }

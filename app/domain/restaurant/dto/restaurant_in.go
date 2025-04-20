@@ -8,10 +8,10 @@ type CreateRestaurantIn struct {
 }
 
 type EditRestaurantIn struct {
-	Name       *string `json:"name,omitempty" validate:"required,min=2" mapstructure:"name"`
-	Address    *string `json:"address,omitempty" validate:"required" mapstructure:"address"`
-	CoverImg   *string `json:"cover_img,omitempty" validate:"required" mapstructure:"cover_img"`
-	CategoryId *uint   `json:"category_id,omitempty" validate:"required" mapstructure:"category_id"`
+	Name       *string `json:"name,omitempty" validate:"min=2" mapstructure:"name"`
+	Address    *string `json:"address,omitempty" mapstructure:"address"`
+	CoverImg   *string `json:"cover_img,omitempty"  mapstructure:"cover_img"`
+	CategoryId *uint   `json:"category_id,omitempty"  mapstructure:"category_id"`
 }
 
 type DeleteRestaurantInput struct {

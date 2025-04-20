@@ -1,6 +1,7 @@
 package repository
 
 import (
+	"fmt"
 	"strconv"
 	"ubereats/app/core/entity"
 	"ubereats/app/core/helper/common"
@@ -14,12 +15,61 @@ import (
 type RestaurantRepo interface {
 	CreateRestaurant(c *fiber.Ctx, inputParam *restaurantDto.CreateRestaurantIn) (*entity.Restaurant, error)
 	GetAllRestaurant(c *fiber.Ctx) (*[]entity.Restaurant, error)
+	EditRestaurant(c *fiber.Ctx, id uint, inputParam *restaurantDto.EditRestaurantIn) (*entity.Restaurant, error)
+	FineOne(key, value string) (*entity.Restaurant, error)
 }
 
 type restaurantRepo struct {
 	dbConn   *gorm.DB
 	userRepo userRepo.UserRepository
 	catRepo  CategoryRepository
+}
+
+// FineOne implements RestaurantRepo.
+func (r *restaurantRepo) FineOne(key string, value string) (*entity.Restaurant, error) {
+	var obj entity.Restaurant
+	query := fmt.Sprintf("%s = ?", key)
+	err := r.dbConn.
+		Preload("Category").
+		Preload("Owner").
+		Where(query, value).First(&obj).Error
+	if err != nil {
+		return nil, err
+	}
+
+	return &obj, nil
+}
+
+// EditRestaurant implements RestaurantRepo.
+func (r *restaurantRepo) EditRestaurant(c *fiber.Ctx, id uint, inputParam *restaurantDto.EditRestaurantIn) (*entity.Restaurant, error) {
+	restaurant, err := r.FineOne("id", fmt.Sprintf("%d", id))
+	if err != nil {
+		return nil, err
+	}
+
+	if err := common.DecodeStructure(inputParam, restaurant); err != nil {
+		return nil, err
+	}
+
+	if err := common.ValidateStruct(restaurant); err != nil {
+		return nil, err
+	}
+
+	// category setting
+	if inputParam.CategoryId != nil {
+		category, err := r.catRepo.FineOne("id", fmt.Sprintf("%d", *inputParam.CategoryId))
+		if err != nil {
+			return nil, err
+		}
+
+		restaurant.Category = *category
+	}
+
+	if err := r.dbConn.Save(restaurant).Error; err != nil {
+		return nil, err
+	}
+
+	return restaurant, nil
 }
 
 // GetAllRestaurant implements RestaurantRepo.
