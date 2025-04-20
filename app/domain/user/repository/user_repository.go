@@ -15,6 +15,7 @@ import (
 
 type UserRepository interface {
 	CreateAccount(c *fiber.Ctx, inputParam *userDto.CreateAccountIn) (*entity.User, error)
+	GetAuthenticateUser(c *fiber.Ctx) (*entity.User, error)
 	Login(c *fiber.Ctx, inputParam *userDto.LoginIn) (string, error)
 	FineOne(key, value string) (*entity.User, error)
 	hashPassword(password string) (string, error)
@@ -24,6 +25,17 @@ type UserRepository interface {
 type userRepository struct {
 	dbConn *gorm.DB
 	cfg    *config.Config
+}
+
+// GetAuthenticateUser implements UserRepository.
+func (r *userRepository) GetAuthenticateUser(c *fiber.Ctx) (*entity.User, error) {
+
+	user, ok := c.Locals("request_user").(entity.User)
+	if !ok {
+		return nil, fmt.Errorf("%s", "user is not authenticated")
+	}
+
+	return &user, nil
 }
 
 // Login implements UserRepository.

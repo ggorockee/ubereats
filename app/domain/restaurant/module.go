@@ -12,6 +12,12 @@ import (
 var ControllerModule = fx.Module(
 	"Controller",
 	fx.Provide(
+		// category
+		restaurantRepo.NewCategoryRepository,
+		restaurantSvc.NewCategoryService,
+		app.AsRoute(restaurantCtrl.NewCategoryContoller),
+
+		// restaurant
 		restaurantRepo.NewRestaurantRepo,
 		restaurantSvc.NewRestaurantService,
 		app.AsRoute(restaurantCtrl.NewRestaurantController),

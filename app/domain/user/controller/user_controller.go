@@ -113,6 +113,11 @@ func (ctrl *userController) Table() []app.Mapping {
 			Path:    v1 + "/user/create",
 			Handler: ctrl.CreateAccount,
 		},
+		{
+			Method:  fiber.MethodPost,
+			Path:    v1 + "/user/login",
+			Handler: ctrl.Login,
+		},
 	}
 }
 
