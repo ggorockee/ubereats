@@ -16,7 +16,7 @@ type CategoryContoller interface {
 	Table() []app.Mapping
 	CreateCategory(c *fiber.Ctx) error
 	GetAllCategory(c *fiber.Ctx) error
-	GetCategory(c *fiber.Ctx) error
+	GetCategoryById(c *fiber.Ctx) error
 }
 
 type categoryController struct {
@@ -76,7 +76,7 @@ func (ctrl *categoryController) GetAllCategory(c *fiber.Ctx) error {
 	return c.Status(fiber.StatusOK).JSON(output)
 }
 
-// GetCategory
+// GetCategoryById
 // @Summary Category
 // @Description Category
 // @Tags Category
@@ -85,7 +85,7 @@ func (ctrl *categoryController) GetAllCategory(c *fiber.Ctx) error {
 // @Param id path string true "category_id"
 // @Router /category/{id} [get]
 // @Security Bearer
-func (ctrl *categoryController) GetCategory(c *fiber.Ctx) error {
+func (ctrl *categoryController) GetCategoryById(c *fiber.Ctx) error {
 	categoryId, err := c.ParamsInt("id")
 	if err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(common.CoreResponse{
@@ -123,7 +123,7 @@ func (ctrl *categoryController) Table() []app.Mapping {
 		{
 			Path:    v1 + "/:id",
 			Method:  fiber.MethodGet,
-			Handler: ctrl.GetCategory,
+			Handler: ctrl.GetCategoryById,
 		},
 	}
 }

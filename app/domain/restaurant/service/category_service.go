@@ -74,17 +74,25 @@ func (s *categoryService) GetCategory(c *fiber.Ctx, id uint) (*restaurantResp.Ge
 	category, err := s.categoryRepo.GetCategory(c, id)
 	if err != nil {
 		return &restaurantResp.GetCategoryOut{
-			CoreResponse: common.CoreResponse{
-				Message: err.Error(),
-			},
+			Message: err.Error(),
 		}, err
 	}
 
+	// 레스토랑 목록 변환
+	simpleRestaurants := restaurantResp.ToSimpleRestaurants(category.Restaurants)
+
+	// 카테고리 결과 변환
+	result := &restaurantResp.CategoryResult{
+		ID:       category.ID,
+		Name:     category.Name,
+		CoverImg: category.CoverImg,
+		// 레스토랑 목록은 필요시 변환
+		Restaurants: simpleRestaurants,
+	}
+
 	return &restaurantResp.GetCategoryOut{
-		CoreResponse: common.CoreResponse{
-			Ok:   true,
-			Data: category,
-		},
+		Ok:   true,
+		Data: result,
 	}, nil
 }
 
