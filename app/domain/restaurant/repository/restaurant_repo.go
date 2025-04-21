@@ -14,7 +14,7 @@ import (
 
 type RestaurantRepo interface {
 	CreateRestaurant(c *fiber.Ctx, inputParam *restaurantDto.CreateRestaurantIn) (*entity.Restaurant, error)
-	GetAllRestaurant(c *fiber.Ctx) (*[]entity.Restaurant, error)
+	AllRestaurant(c *fiber.Ctx, params ...restaurantDto.GetRestaurantsInput) (*[]entity.Restaurant, int, error)
 	EditRestaurant(c *fiber.Ctx, id uint, inputParam *restaurantDto.EditRestaurantIn) (*entity.Restaurant, error)
 	FineOne(key, value string) (*entity.Restaurant, error)
 	FindCategoryByName(c *fiber.Ctx, name string, params ...common.PaginationParams) (*entity.Category, error)
@@ -131,14 +131,43 @@ func (r *restaurantRepo) EditRestaurant(c *fiber.Ctx, id uint, inputParam *resta
 }
 
 // GetAllRestaurant implements RestaurantRepo.
-func (r *restaurantRepo) GetAllRestaurant(c *fiber.Ctx) (*[]entity.Restaurant, error) {
+func (r *restaurantRepo) AllRestaurant(c *fiber.Ctx, params ...restaurantDto.GetRestaurantsInput) (*[]entity.Restaurant, int, error) {
 	var restaurants []entity.Restaurant
+	var totalResults64 int64
 
-	if err := r.dbConn.Find(&restaurants).Error; err != nil {
-		return nil, err
+	p := restaurantDto.GetRestaurantsInput{
+		Page:  1,
+		Limit: 25,
 	}
 
-	return &restaurants, nil
+	if len(params) > 0 {
+		p = params[0]
+		if p.Limit == 0 {
+			p.Limit = 25
+		}
+		if p.Page == 0 {
+			p.Page = 1
+		}
+	}
+
+	offset := (p.Page - 1) * p.Limit
+
+	// 총 개수 조회
+	if err := r.dbConn.
+		Model(&entity.Restaurant{}).
+		Count(&totalResults64).Error; err != nil {
+		return nil, 0, err
+	}
+
+	// 페이지네이션 적용
+	if err := r.dbConn.
+		Limit(p.Limit).
+		Offset(offset).
+		Find(&restaurants).Error; err != nil {
+		return nil, 0, err
+	}
+
+	return &restaurants, int(totalResults64), nil
 }
 
 func (r *restaurantRepo) CreateRestaurant(c *fiber.Ctx, inputParam *restaurantDto.CreateRestaurantIn) (*entity.Restaurant, error) {

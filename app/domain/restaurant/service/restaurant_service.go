@@ -13,7 +13,7 @@ import (
 
 type RestaurantService interface {
 	CreateRestaurant(c *fiber.Ctx, inputParm *restaurantDto.CreateRestaurantIn) (*restaurantResp.CreateRestaurantOut, error)
-	GetAllRestaurant(c *fiber.Ctx) (*restaurantResp.GetAllRestaurantOut, error)
+	AllRestaurant(c *fiber.Ctx, param ...restaurantDto.GetRestaurantsInput) (*restaurantResp.AllRestaurantOut, error)
 	EditRestaurant(c *fiber.Ctx, id uint, inputParam *restaurantDto.EditRestaurantIn) (*restaurantResp.EditRestaurantOut, error)
 	FindCategoryByName(c *fiber.Ctx, name string, params ...common.PaginationParams) (*restaurantResp.GetCategoryOut, error)
 }
@@ -92,21 +92,43 @@ func (s *restaurantService) EditRestaurant(c *fiber.Ctx, id uint, inputParam *re
 }
 
 // GetAllRestaurant implements RestaurantService.
-func (s *restaurantService) GetAllRestaurant(c *fiber.Ctx) (*restaurantResp.GetAllRestaurantOut, error) {
-	restaurants, err := s.restaurantRepo.GetAllRestaurant(c)
-	if err != nil {
-		return &restaurantResp.GetAllRestaurantOut{
-			CoreResponse: common.CoreResponse{
-				Message: err.Error(),
-			},
-		}, err
+func (s *restaurantService) AllRestaurant(c *fiber.Ctx, param ...restaurantDto.GetRestaurantsInput) (*restaurantResp.AllRestaurantOut, error) {
+
+	// 1. 기본값 설정
+	p := restaurantDto.GetRestaurantsInput{
+		Page:  1,
+		Limit: 25,
 	}
 
-	return &restaurantResp.GetAllRestaurantOut{
-		CoreResponse: common.CoreResponse{
-			Ok:   true,
-			Data: restaurants,
-		},
+	if len(param) > 0 {
+		p = param[0]
+		if p.Limit == 0 {
+			p.Limit = 25
+		}
+		if p.Page == 0 {
+			p.Page = 1
+		}
+	}
+
+	// 2. 레포지토리 호출
+	restaurants, totalResults, err := s.restaurantRepo.AllRestaurant(c, p)
+	if err != nil {
+		return &restaurantResp.AllRestaurantOut{
+			Message: "could not load restaurants",
+		}, nil
+	}
+
+	// 3. 총 페이지 계산
+	totalPages := (totalResults + (p.Limit) - 1) / (p.Limit)
+
+	simpleRestaurants := restaurantResp.ToSimpleRestaurants(*restaurants)
+
+	return &restaurantResp.AllRestaurantOut{
+		Ok:           false,
+		Message:      "",
+		Results:      simpleRestaurants,
+		TotalPages:   totalPages,
+		TotalResults: totalResults,
 	}, nil
 }
 

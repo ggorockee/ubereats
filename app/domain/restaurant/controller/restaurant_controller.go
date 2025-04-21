@@ -17,7 +17,7 @@ type RestaurantController interface {
 	Table() []app.Mapping
 	CreateRestaurant(c *fiber.Ctx) error
 	EditRestaurant(c *fiber.Ctx) error
-	GetAllRestaurant(c *fiber.Ctx) error
+	AllRestaurant(c *fiber.Ctx) error
 	GetCategoryByName(c *fiber.Ctx) error
 }
 
@@ -109,16 +109,23 @@ func (ctrl *restaurantController) EditRestaurant(c *fiber.Ctx) error {
 	return c.Status(fiber.StatusOK).JSON(output)
 }
 
-// GetAllRestaurant
-// @Summary GetAllRestaurant
-// @Description GetAllRestaurant
+// AllRestaurant
+// @Summary AllRestaurant
+// @Description AllRestaurant
 // @Tags Restaurant
 // @Accept json
 // @Produce json
 // @Router /restaurant [get]
 // @Security Bearer
-func (ctrl *restaurantController) GetAllRestaurant(c *fiber.Ctx) error {
-	output, err := ctrl.restaurantService.GetAllRestaurant(c)
+func (ctrl *restaurantController) AllRestaurant(c *fiber.Ctx) error {
+	var input restaurantDto.GetRestaurantsInput
+	if err := c.QueryParser(&input); err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(restaurantResp.AllRestaurantOut{
+			Message: "Invalid query parameters",
+		})
+	}
+
+	output, err := ctrl.restaurantService.AllRestaurant(c, input)
 	if err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(output)
 	}
@@ -174,7 +181,7 @@ func (ctrl *restaurantController) Table() []app.Mapping {
 		{
 			Method:  fiber.MethodGet,
 			Path:    v1 + "",
-			Handler: ctrl.GetAllRestaurant,
+			Handler: ctrl.AllRestaurant,
 			// Middlewares: []fiber.Handler{
 			// 	// middleware.RoleGuard(entity.RoleOwner),
 			// },
