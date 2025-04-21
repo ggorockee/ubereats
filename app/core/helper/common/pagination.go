@@ -1,11 +1,10 @@
 package common
 
-type PaginationInput struct {
-	Page int `json:"page" default:"1"`
+type PaginationParams struct {
+	Page  int `json:"page" query:"page" default:"1" validate:"min=1"`
+	Limit int `json:"limit" query:"limit"`
 }
 
 type PaginationOutput struct {
-	CoreResponse
-	TotalPages   *int `json:"total_pages,omitempty"`
-	TotalResults *int `json:"total_results,omitempty"`
+	TotalPages *int `json:"total_pages,omitempty"`
 }

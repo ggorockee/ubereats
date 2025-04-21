@@ -17,12 +17,70 @@ type RestaurantRepo interface {
 	GetAllRestaurant(c *fiber.Ctx) (*[]entity.Restaurant, error)
 	EditRestaurant(c *fiber.Ctx, id uint, inputParam *restaurantDto.EditRestaurantIn) (*entity.Restaurant, error)
 	FineOne(key, value string) (*entity.Restaurant, error)
+	FindCategoryByName(c *fiber.Ctx, name string, params ...common.PaginationParams) (*entity.Category, error)
 }
 
 type restaurantRepo struct {
 	dbConn   *gorm.DB
 	userRepo userRepo.UserRepository
 	catRepo  CategoryRepository
+}
+
+// FindCategoryByName implements RestaurantRepo.
+func (r *restaurantRepo) FindCategoryByName(c *fiber.Ctx, name string, params ...common.PaginationParams) (*entity.Category, error) {
+	var category entity.Category
+
+	var p common.PaginationParams
+	if len(params) > 0 {
+		p = params[0]
+	} else {
+		p = common.PaginationParams{
+			Page:  1,
+			Limit: 25,
+		}
+	}
+
+	// 1. category 조회
+	selectRestaurantCol := fmt.Sprintf("%s, %s, %s, %s, %s, %s",
+		"id", "name", "cover_img", "address", "category_id", "owner_id",
+	)
+	if err := r.dbConn.
+		Preload("Restaurants", func(db *gorm.DB) *gorm.DB {
+			return db.Select(selectRestaurantCol)
+		}).
+		Where("name = ?", name).
+		First(&category).Error; err != nil {
+		return nil, fmt.Errorf("%s", "category not found")
+	}
+
+	// 2. pagination 기본 설정
+	offset := (p.Page - 1) * p.Limit
+
+	// 3. 레스토랑 조회
+	var restaurants []entity.Restaurant
+	if err := r.dbConn.
+		Where("category_id = ?", category.ID).
+		Limit(p.Limit).
+		Offset(offset).
+		Find(&restaurants).Error; err != nil {
+		return nil, fmt.Errorf("%s", "database Error")
+	}
+
+	// 4. 총 레스토랑 수 계산
+	var totalResults int64
+	if err := r.dbConn.
+		Model(&entity.Restaurant{}).
+		Where("category_id = ?", category.ID).
+		Count(&totalResults).Error; err != nil {
+		return nil, fmt.Errorf("%s", "database Error")
+	}
+
+	category.Restaurants = restaurants
+	totalPagesP := int((totalResults + int64(p.Limit) - 1) / int64(p.Limit)) // 올림 계산
+	category.TotalPages = &totalPagesP
+
+	return &category, nil
+
 }
 
 // FineOne implements RestaurantRepo.

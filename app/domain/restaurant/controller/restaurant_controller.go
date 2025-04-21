@@ -1,11 +1,11 @@
 package controller
 
 import (
-	"log"
 	"ubereats/app"
 	"ubereats/app/core/entity"
 	"ubereats/app/core/helper/common"
 	restaurantDto "ubereats/app/domain/restaurant/dto"
+	restaurantResp "ubereats/app/domain/restaurant/response"
 	restaurantSvc "ubereats/app/domain/restaurant/service"
 	"ubereats/app/middleware"
 	"ubereats/config"
@@ -18,11 +18,55 @@ type RestaurantController interface {
 	CreateRestaurant(c *fiber.Ctx) error
 	EditRestaurant(c *fiber.Ctx) error
 	GetAllRestaurant(c *fiber.Ctx) error
+	GetCategoryByName(c *fiber.Ctx) error
 }
 
 type restaurantController struct {
 	restaurantService restaurantSvc.RestaurantService
 	cfg               *config.Config
+}
+
+// GetCategoryByName
+// @Summary Get category by name
+// @Description Get restaurants in a category with pagination
+// @Tags Restaurant
+// @Accept json
+// @Produce json
+// @Param name query string true "Category name"
+// @Param page query int false "Page number (default: 1)"
+// @Router /api/v1/restaurant/category [get]
+// @Security Beare
+func (ctrl *restaurantController) GetCategoryByName(c *fiber.Ctx) error {
+	var input restaurantDto.GetCategoryIn
+	// 1. 쿼리 파라미터 파싱
+	if err := c.QueryParser(&input); err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(restaurantResp.GetCategoryOut{
+			Ok:      false,
+			Message: "Invalid query parameters",
+		})
+	}
+
+	// 2. 필수 필드 검증 (name 필수)
+	if err := common.ValidateStruct(&input); err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(restaurantResp.GetCategoryOut{
+			Ok:      false,
+			Message: err.Error(),
+		})
+	}
+
+	// 3. 페이지네이션 기본값 설정
+	params := common.PaginationParams{
+		Page:  input.Page,
+		Limit: input.Limit, // Limit이 0이면 서비스에서 기본값 처리
+	}
+
+	// 4. 서비스 호출
+	output, err := ctrl.restaurantService.FindCategoryByName(c, input.Name, params)
+	if err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(output)
+	}
+
+	return c.Status(fiber.StatusOK).JSON(output)
 }
 
 // EditRestaurant
@@ -44,7 +88,6 @@ func (ctrl *restaurantController) EditRestaurant(c *fiber.Ctx) error {
 	}
 
 	if err := common.ValidateStruct(&requestBody); err != nil {
-		log.Println("너니?")
 		return c.Status(fiber.StatusInternalServerError).JSON(common.CoreResponse{
 			Message: err.Error(),
 		})
@@ -143,6 +186,15 @@ func (ctrl *restaurantController) Table() []app.Mapping {
 			Middlewares: []fiber.Handler{
 				middleware.JWtProtected(ctrl.cfg),
 				middleware.RoleGuard(entity.RoleOwner),
+			},
+		},
+		{
+			Method:  fiber.MethodGet,
+			Path:    v1 + "/category",
+			Handler: ctrl.GetCategoryByName,
+			Middlewares: []fiber.Handler{
+				middleware.JWtProtected(ctrl.cfg),
+				middleware.RoleGuard(entity.RoleAny),
 			},
 		},
 	}

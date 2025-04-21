@@ -15,11 +15,52 @@ type RestaurantService interface {
 	CreateRestaurant(c *fiber.Ctx, inputParm *restaurantDto.CreateRestaurantIn) (*restaurantResp.CreateRestaurantOut, error)
 	GetAllRestaurant(c *fiber.Ctx) (*restaurantResp.GetAllRestaurantOut, error)
 	EditRestaurant(c *fiber.Ctx, id uint, inputParam *restaurantDto.EditRestaurantIn) (*restaurantResp.EditRestaurantOut, error)
+	FindCategoryByName(c *fiber.Ctx, name string, params ...common.PaginationParams) (*restaurantResp.GetCategoryOut, error)
 }
 
 type restaurantService struct {
 	restaurantRepo restaurantRepo.RestaurantRepo
 	dbConn         *gorm.DB
+}
+
+// FindCategoryByName implements RestaurantService.
+func (s *restaurantService) FindCategoryByName(c *fiber.Ctx, name string, params ...common.PaginationParams) (*restaurantResp.GetCategoryOut, error) {
+	p := common.PaginationParams{
+		Page:  1,
+		Limit: 25,
+	}
+	if len(params) > 0 {
+		p = params[0] // 첫 번째 요소만 사용
+
+		if p.Limit == 0 {
+			p.Limit = 25
+		}
+	}
+
+	category, err := s.restaurantRepo.FindCategoryByName(c, name, p)
+	if err != nil {
+		return &restaurantResp.GetCategoryOut{
+			Message: err.Error(),
+		}, nil
+	}
+
+	restaurants := restaurantResp.ToSimpleRestaurants(category.Restaurants)
+
+	result := restaurantResp.CategoryResult{
+		ID:          category.ID,
+		Name:        category.Name,
+		CoverImg:    category.CoverImg,
+		Restaurants: restaurants,
+		TotalPages:  *category.TotalPages,
+	}
+
+	return &restaurantResp.GetCategoryOut{
+		Ok:   true,
+		Data: &result,
+		PaginationOutput: common.PaginationOutput{
+			TotalPages: category.TotalPages,
+		},
+	}, nil
 }
 
 // EditRestaurant implements RestaurantService.
